@@ -105,8 +105,10 @@ func freeBytes(path string) (uint64, error) {
 }
 
 type service struct {
-	Profiles []string `json:"profiles"`
-	Ports    []struct {
+	Image       string             `json:"image"`
+	Environment map[string]*string `json:"environment"`
+	Profiles    []string           `json:"profiles"`
+	Ports       []struct {
 		Published string `json:"published"`
 		HostIP    string `json:"host_ip"`
 		Protocol  string `json:"protocol"`

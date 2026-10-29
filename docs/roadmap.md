@@ -15,6 +15,12 @@
 - Distinguish named Docker volumes from changed data sources.
 - Confirm behavior with a 16-case read-only synthetic validation matrix.
 
+## v0.3 preview
+
+- Detect differences in explicitly declared environment values without displaying credentials.
+- Warn about changed image references and running services missing from the proposal.
+- Link practical troubleshooting to documented user questions, including where native Docker commands are sufficient.
+
 ## Before a stable release
 
 - Validate against additional real Compose projects from users outside the maintainer's infrastructure.

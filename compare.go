@@ -23,6 +23,7 @@ type containerMount struct {
 type runningContainer struct {
 	Project string
 	Service string
+	ID      string
 	Ports   map[string][]hostBinding
 	Mounts  []containerMount
 }
@@ -71,6 +72,37 @@ func readContainer(ctx context.Context, h Host, id string) (runningContainer, er
 		return runningContainer{}, errors.New("invalid mount metadata")
 	}
 	return c, nil
+}
+
+// Runtime environment values stay in memory. Never include them in findings.
+func readRuntimeMetadata(ctx context.Context, h Host, id string) (string, map[string]string, error) {
+	if !checkedID(id) {
+		return "", nil, errors.New("invalid container ID")
+	}
+	raw, err := h.Run(ctx, "docker", "inspect", "--format", "{{json .Config.Image}}|||{{json .Config.Env}}", id)
+	if err != nil {
+		return "", nil, errors.New("runtime metadata unavailable")
+	}
+	parts := strings.SplitN(strings.TrimSpace(string(raw)), "|||", 2)
+	if len(parts) != 2 {
+		return "", nil, errors.New("unexpected runtime metadata")
+	}
+	var image string
+	if err := json.Unmarshal([]byte(parts[0]), &image); err != nil {
+		return "", nil, errors.New("invalid image metadata")
+	}
+	var entries []string
+	if err := json.Unmarshal([]byte(parts[1]), &entries); err != nil {
+		return "", nil, errors.New("invalid environment metadata")
+	}
+	env := make(map[string]string, len(entries))
+	for _, entry := range entries {
+		pair := strings.SplitN(entry, "=", 2)
+		if len(pair) == 2 {
+			env[pair[0]] = pair[1]
+		}
+	}
+	return image, env, nil
 }
 func parseOwners(raw []byte) ([]struct{ id, project, service string }, error) {
 	var out []struct{ id, project, service string }
@@ -173,6 +205,7 @@ func projectContainers(ctx context.Context, h Host, project string) (map[string]
 		}
 		c.Service = service
 		c.Project = project
+		c.ID = p[0]
 		if _, duplicate := current[service]; duplicate {
 			return nil, errors.New("multiple running containers for the same service are not yet supported")
 		}
@@ -236,6 +269,29 @@ func comparison(ctx context.Context, h Host, model model, selected []string, env
 			continue
 		}
 		compared++
+		if planned.Image != "" || len(planned.Environment) > 0 {
+			image, currentEnv, metaErr := readRuntimeMetadata(ctx, h, existing.ID)
+			if metaErr != nil {
+				r.add("RUNTIME_METADATA_UNKNOWN", "warning", name, "The running image and environment could not be compared.", "Check Docker access; do not assume the application configuration is unchanged.")
+			} else {
+				if planned.Image != "" && planned.Image != image {
+					r.add("IMAGE_REFERENCE_CHANGED", "warning", name, "The proposed image reference differs from the running container.", "Verify the image and plan for potential container recreation; this does not check image digests.")
+				}
+				changes := 0
+				for key, want := range planned.Environment {
+					if want == nil {
+						continue
+					}
+					got, exists := currentEnv[key]
+					if !exists || got != *want {
+						changes++
+					}
+				}
+				if changes > 0 {
+					r.add("ENV_CHANGED", "warning", name, fmt.Sprintf("%d declared environment setting(s) differ from the running container.", changes), "docker compose restart does not apply new environment values. Review the proposed settings and use docker compose up -d when appropriate.")
+				}
+			}
+		}
 		desiredPorts := plannedPublished(planned)
 		oldPorts := runningPublished(existing)
 		for key := range desiredPorts {
@@ -277,7 +333,12 @@ func comparison(ctx context.Context, h Host, model model, selected []string, env
 			}
 		}
 	}
-	if compared > 0 && !hasID(*r, "PORT_ADDED") && !hasID(*r, "PORT_REMOVED") && !hasID(*r, "MOUNT_REMOVED") && !hasID(*r, "MOUNT_SOURCE_CHANGED") && !hasID(*r, "SERVICE_NEW") {
-		r.add("RUNNING_MATCH", "pass", "", "No port or data-mount changes were found for the compared running services.", "Other configuration changes are not analyzed.")
+	for serviceName := range live {
+		if _, exists := model.Services[serviceName]; !exists {
+			r.add("SERVICE_ABSENT_FROM_PROPOSAL", "warning", serviceName, "A running service is absent from the proposed Compose model.", "It may remain as an orphan unless you explicitly remove it. Review the deployment plan without deleting containers blindly.")
+		}
+	}
+	if compared > 0 && !hasID(*r, "ENV_CHANGED") && !hasID(*r, "IMAGE_REFERENCE_CHANGED") && !hasID(*r, "RUNTIME_METADATA_UNKNOWN") && !hasID(*r, "SERVICE_ABSENT_FROM_PROPOSAL") && !hasID(*r, "PORT_ADDED") && !hasID(*r, "PORT_REMOVED") && !hasID(*r, "MOUNT_REMOVED") && !hasID(*r, "MOUNT_SOURCE_CHANGED") && !hasID(*r, "SERVICE_NEW") {
+		r.add("RUNNING_MATCH", "pass", "", "No changes were detected in the inspected ports, mounts, declared environment or image references.", "Image digests, application health and other runtime settings are not analyzed.")
 	}
 }

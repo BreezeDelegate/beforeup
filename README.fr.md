@@ -30,7 +30,7 @@ Les options `-f`, `--profile` et `--env-file` peuvent être répétées.
 
 ## Comparer avec une installation en cours
 
-`beforeup compare -f compose.yaml` examine les conteneurs **encore actifs** du même projet. Il signale les ports ajoutés ou retirés, les changements de source des montages et les montages qui disparaîtraient de la configuration proposée.
+`beforeup compare -f compose.yaml` examine les conteneurs **encore actifs** du même projet. Il signale les ports ajoutés ou retirés, les changements de montages, ainsi que les différences de valeurs d’environnement et de références d’images par rapport aux conteneurs actifs, sans exposer les valeurs sensibles.
 
 La comparaison reste partielle : elle n'analyse ni les changements d'image, ni les variables d'environnement, ni le comportement de l'application. Si les conteneurs ne sont pas accessibles, elle ne prétend pas disposer d'une référence. Rien n'est redémarré ou modifié.
 
@@ -54,6 +54,6 @@ BeforeUp n'exécute pas `docker compose up`, ne crée pas de répertoires et ne 
 
 Pour un moteur Docker distant, les vérifications propres à la machine locale sont ignorées : exécute BeforeUp sur la machine cible.
 
-[Documentation principale en anglais](README.md) · [Sécurité](SECURITY.md) · [Contribuer](CONTRIBUTING.md) · [Validation](docs/validation.md)
+[Cas d’usage fréquents (anglais)](docs/common-issues.md) · [Documentation principale en anglais](README.md) · [Sécurité](SECURITY.md) · [Contribuer](CONTRIBUTING.md) · [Validation](docs/validation.md)
 
 Licence MIT. [LICENSE](LICENSE). Projet de [BreezeDelegate](https://github.com/BreezeDelegate) ; activités professionnelles sur [vitrine.bar](https://vitrine.bar/).

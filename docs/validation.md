@@ -55,3 +55,11 @@ The portable subset of 14 cases is reproducible via `python3 tests/compose_matri
 The matrix also caught a bug: Compose can validly select zero services when all are disabled by profiles. BeforeUp now reports `NO_ACTIVE_SERVICES` without claiming the Compose file is invalid. It does **not** verify whether a referenced image can be downloaded; the image-reference case remains a documented gap.
 
 All these cases are internal tests. No independent developer adoption has yet been measured, and competing tools were compared at the documentation/feature level rather than through an independently validated execution benchmark. These results do not establish superiority over other products.
+
+## Community-derived scenarios and runtime metadata (29 October 2026)
+
+Stack Overflow questions about environment values not updating after `docker compose restart`, host ports already allocated and bind-mount problems were reviewed. An existing Komodo GitHub issue discusses Compose interpolation and container recreation. References, native workarounds and the checks BeforeUp can or cannot provide are recorded in [common issues](common-issues.md).
+
+For the environment-change case, new Go tests compare only environment settings explicitly present in the proposed resolved Compose model against running container values. Extra variables inherited from an image are not treated as configuration changes. Sensitive names and values are withheld from diagnostics. Other tests cover changed image references, failed metadata inspection and services that no longer appear in the proposal.
+
+The change was exercised in read-only mode against two running Compose projects on the maintainer VPS. This is not independent field validation. No replies or promotional posts were made in community discussions.

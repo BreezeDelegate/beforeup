@@ -2,9 +2,12 @@
 
 ## 29 October 2026
 
-BeforeUp is a public Linux-only preview. The baseline `check` command verifies Docker Compose configuration against selected local host conditions. The `compare` command also reads active containers belonging to the same project and identifies changes in published ports and data mounts.
+BeforeUp is a public Linux-only preview. The baseline `check` command verifies Docker Compose configuration against selected local host conditions. The `compare` command reads active containers belonging to the same project and identifies changes in published ports, data mounts, declared container environment values and image references.
 
 ### Verified
+
+- New isolated regression tests cover changed environment values, image references, unavailable runtime metadata and missing services; all values are redacted from output.
+- Read-only smoke checks on two existing Compose projects observed an unchanged database and configuration differences in a separate application.
 
 - Unit and regression tests for port ownership, changed host bindings, mount comparisons, Docker contexts, wildcard profiles, output redaction and failure paths.
 - Read-only Docker Compose integration tests, plus a portable 14-case Compose matrix and two running-project owner cases.
@@ -14,10 +17,10 @@ BeforeUp is a public Linux-only preview. The baseline `check` command verifies D
 ### Known limitations
 
 - Only Linux is supported. Remote Docker contexts do not get local host checks.
-- Compare only checks running service port bindings and mounts, not images, health, environment changes, resource reservations or network topology.
+- Compare checks port bindings, data mounts, declared environment values and image references; it does not check image digests, health, inherited environment settings, resource reservations or network topology.
 - Multiple replicas of one Compose service are not yet comparable. No baseline is reported as unknown, never as healthy.
 - Rootless Docker, IPv6 dual-stack and multiple network namespaces need additional independent coverage.
-- No users outside the maintainer infrastructure have evaluated the program yet. No success or GitHub popularity can be inferred from internal tests.
+- No users outside the maintainer infrastructure have evaluated the program yet. No unsolicited promotional replies were posted; Stack Overflow discussions used as source cases were already answered. No success or GitHub popularity can be inferred from internal tests.
 
 ### Next decision
 

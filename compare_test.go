@@ -204,3 +204,137 @@ func TestOwnPortOnDifferentHostAddressIsAChange(t *testing.T) {
 		t.Fatalf("own address change was misattributed: %+v", r)
 	}
 }
+
+func TestCompareDetectsChangedEnvironmentWithoutValues(t *testing.T) {
+	raw := `{"name":"demo","services":{"web":{"image":"example/web:1","environment":{"PASSWORD":"new-secret-abc","MODE":"production"}}}}`
+	h := fakeHost(raw)
+	old := h.Run
+	h.Run = func(ctx context.Context, cmd string, args ...string) ([]byte, error) {
+		q := cmd + " " + strings.Join(args, " ")
+		if strings.Contains(q, "docker ps --filter label=com.docker.compose.project=demo") {
+			return []byte("deadbeef1234|web\n"), nil
+		}
+		if strings.Contains(q, "docker inspect --format") && strings.Contains(q, "deadbeef1234") {
+			if strings.Contains(q, ".Config.Image") {
+				return []byte(`"example/web:1"|||["PASSWORD=old-secret-xyz","MODE=production","BASE_IMAGE_VAR=safe"]`), nil
+			}
+			return []byte(`{}|||[]`), nil
+		}
+		return old(ctx, cmd, args...)
+	}
+	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	if e != nil {
+		t.Fatal(e)
+	}
+	f, ok := find(r, "ENV_CHANGED")
+	if !ok || f.Level != "warning" {
+		t.Fatalf("expected environment warning %+v", r)
+	}
+	report := fmt.Sprint(r)
+	for _, secret := range []string{"new-secret-abc", "old-secret-xyz", "PASSWORD"} {
+		if strings.Contains(report, secret) {
+			t.Fatalf("secret/name exposed %q", secret)
+		}
+	}
+	if hasID(r, "RUNNING_MATCH") {
+		t.Fatal("configuration change claimed to be identical")
+	}
+}
+func TestCompareUnchangedEnvironmentDoesNotWarnAboutImageDefaults(t *testing.T) {
+	raw := `{"name":"demo","services":{"web":{"image":"example/web:1","environment":{"MODE":"production"}}}}`
+	h := fakeHost(raw)
+	old := h.Run
+	h.Run = func(ctx context.Context, cmd string, args ...string) ([]byte, error) {
+		q := cmd + " " + strings.Join(args, " ")
+		if strings.Contains(q, "docker ps --filter label=com.docker.compose.project=demo") {
+			return []byte("deadbeef1234|web\n"), nil
+		}
+		if strings.Contains(q, "docker inspect --format") && strings.Contains(q, "deadbeef1234") {
+			if strings.Contains(q, ".Config.Image") {
+				return []byte(`"example/web:1"|||["MODE=production","PATH=/usr/bin","INHERITED=default"]`), nil
+			}
+			return []byte(`{}|||[]`), nil
+		}
+		return old(ctx, cmd, args...)
+	}
+	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if hasID(r, "ENV_CHANGED") || hasID(r, "IMAGE_REFERENCE_CHANGED") || !hasID(r, "RUNNING_MATCH") {
+		t.Fatalf("image defaults must not lead to false positives %+v", r)
+	}
+}
+func TestCompareImageReferenceChangeDoesNotEchoReference(t *testing.T) {
+	raw := `{"name":"demo","services":{"web":{"image":"example/web:private-value-987"}}}`
+	h := fakeHost(raw)
+	old := h.Run
+	h.Run = func(ctx context.Context, cmd string, args ...string) ([]byte, error) {
+		q := cmd + " " + strings.Join(args, " ")
+		if strings.Contains(q, "docker ps --filter label=com.docker.compose.project=demo") {
+			return []byte("deadbeef1234|web\n"), nil
+		}
+		if strings.Contains(q, "docker inspect --format") && strings.Contains(q, "deadbeef1234") {
+			if strings.Contains(q, ".Config.Image") {
+				return []byte(`"example/web:old"|||[]`), nil
+			}
+			return []byte(`{}|||[]`), nil
+		}
+		return old(ctx, cmd, args...)
+	}
+	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if !hasID(r, "IMAGE_REFERENCE_CHANGED") || strings.Contains(fmt.Sprint(r), "private-value-987") {
+		t.Fatalf("image change missing or leaked %+v", r)
+	}
+}
+func TestCompareMissingRuntimeMetadataIsUnknown(t *testing.T) {
+	raw := `{"name":"demo","services":{"web":{"image":"example/web:1","environment":{"MODE":"production"}}}}`
+	h := fakeHost(raw)
+	old := h.Run
+	h.Run = func(ctx context.Context, cmd string, args ...string) ([]byte, error) {
+		q := cmd + " " + strings.Join(args, " ")
+		if strings.Contains(q, "docker ps --filter label=com.docker.compose.project=demo") {
+			return []byte("deadbeef1234|web\n"), nil
+		}
+		if strings.Contains(q, "docker inspect --format") && strings.Contains(q, "deadbeef1234") {
+			if strings.Contains(q, ".Config.Image") {
+				return nil, fmt.Errorf("secret-value-in-error")
+			}
+			return []byte(`{}|||[]`), nil
+		}
+		return old(ctx, cmd, args...)
+	}
+	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if !hasID(r, "RUNTIME_METADATA_UNKNOWN") || hasID(r, "RUNNING_MATCH") || strings.Contains(fmt.Sprint(r), "secret-value-in-error") {
+		t.Fatalf("unknown baseline handling failed %+v", r)
+	}
+}
+func TestCompareReportsAbsentServiceWithoutPredictingRemoval(t *testing.T) {
+	raw := `{"name":"demo","services":{"new":{"image":"example/web:1"}}}`
+	h := fakeHost(raw)
+	old := h.Run
+	h.Run = func(ctx context.Context, cmd string, args ...string) ([]byte, error) {
+		q := cmd + " " + strings.Join(args, " ")
+		if strings.Contains(q, "docker ps --filter label=com.docker.compose.project=demo") {
+			return []byte("deadbeef1234|old\n"), nil
+		}
+		if strings.Contains(q, "docker inspect --format") && strings.Contains(q, "deadbeef1234") {
+			return []byte(`{}|||[]`), nil
+		}
+		return old(ctx, cmd, args...)
+	}
+	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	if e != nil {
+		t.Fatal(e)
+	}
+	f, ok := find(r, "SERVICE_ABSENT_FROM_PROPOSAL")
+	if !ok || !strings.Contains(f.Advice, "orphan") {
+		t.Fatalf("removed service must be reported as orphan risk, not certain deletion %+v", r)
+	}
+}

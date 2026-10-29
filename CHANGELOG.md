@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0-preview.1
+
+- Compare declared environment settings against running container values without printing names or secrets.
+- Identify changes to image references, without claiming to detect digest changes.
+- Warn when a running service disappears from the proposed resolved Compose model.
+- Preserve explicit unknown results when Docker metadata cannot be inspected.
+- Document common Docker Compose problems and safe native workarounds.
+
+
 ## 0.2.0-preview.1
 
 - Compare proposed Compose port bindings and data mounts against the running service.

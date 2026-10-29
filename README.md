@@ -39,11 +39,13 @@ Run it in a directory containing your Compose project, or provide `-f`. Repeated
 - a published host port is added or removed;
 - an existing container's bind source or named volume would change;
 - a currently mounted data path would no longer be mounted;
+- a declared environment setting or image reference differs from the running container (without printing secret values);
+- an existing running service is absent from the proposed resolved Compose model;
 - an intended service has no running counterpart.
 
 Use repeated `-f` options for overrides, just as you would with Docker Compose. This is read-only: it does not simulate a replacement, stop containers or create volumes.
 
-A matching report means only the **inspected port bindings and data mounts** appear unchanged. It does not prove that the image, environment variables, command, networks or application behavior are unchanged. Stopped services and Compose replicas do not currently have full comparison support. A missing baseline is reported explicitly, not treated as a healthy deployment.
+A matching report means only the **inspected port bindings, data mounts, declared environment settings and image reference** appear unchanged. It does not prove that the image digest, inherited environment, command, networks or application behavior are unchanged. Stopped services and Compose replicas do not currently have full comparison support. A missing baseline is reported explicitly, not treated as a healthy deployment.
 
 ## What it checks
 
@@ -59,6 +61,9 @@ A matching report means only the **inspected port bindings and data mounts** app
 | `BIND_MISSING` | A local bind source is absent; an explicitly non-creatable path blocks startup |
 | `DISK_LOW` | The filesystem holding Docker's data has less free space than the configured threshold |
 | `CONTEXT` | A remote Docker endpoint prevents meaningful local host checks |
+| `ENV_CHANGED` | Declared container environment differs from running settings, with no values printed |
+| `IMAGE_REFERENCE_CHANGED` | Proposed image reference differs from running container reference |
+| `SERVICE_ABSENT_FROM_PROPOSAL` | Running service missing from proposed resolved model; may remain as an orphan |
 | `PORT_ADDED` / `PORT_REMOVED` | A proposed deployment changes a published host port |
 | `MOUNT_REMOVED` / `MOUNT_SOURCE_CHANGED` | A mounted data path or its source changes |
 | `NO_ACTIVE_SERVICES` | No services are selected by the current Compose profiles |
@@ -100,6 +105,6 @@ BeforeUp **does not run `up`, create directories, change permissions, clean Dock
 
 Issues about false positives, genuine missing checks and small reproducible Compose examples are welcome. Please remove credentials and customer details before sharing a configuration.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [the validation notes](docs/validation.md) and the [French README](README.fr.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md), [common Docker Compose problems](docs/common-issues.md), [validation notes](docs/validation.md) and the [French README](README.fr.md).
 
 MIT licensed. [LICENSE](LICENSE). Maintained by [BreezeDelegate](https://github.com/BreezeDelegate); professional work at [vitrine.bar](https://vitrine.bar/).

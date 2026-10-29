@@ -14,3 +14,5 @@ BeforeUp exists to find a few host-side problems before a Docker Compose project
 - Never claim external adoption or test results without evidence.
 - Keep Git author and committer metadata on the owner's GitHub noreply identity. Follow the owner's canonical workspace GitHub write rules; do not use an assistant connector for commits.
 - Run tests and package validation locally on the owner's personal VPS.
+
+- Comparing declared environment values reads secrets through Docker inspect. Keep values in memory; report only counts and never print the variable name, value or raw inspect output.
