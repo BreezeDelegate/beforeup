@@ -50,5 +50,6 @@ Description: Read-only Docker Compose preflight and change checks
 EOF
 install -m 644 "$root/README.md" "$work/package/usr/share/doc/beforeup/README"
 install -m 644 "$root/LICENSE" "$work/package/usr/share/doc/beforeup/copyright"
-dpkg-deb --root-owner-group --build "$work/package" "$out/beforeup_${debversion}_${arch}.deb" >/dev/null
-printf '%s\n' "$out/beforeup_${debversion}_${arch}.deb"
+asset_version=$(printf '%s' "$debversion" | tr '~' '.')
+dpkg-deb --root-owner-group --build "$work/package" "$out/beforeup_${asset_version}_${arch}.deb" >/dev/null
+printf '%s\n' "$out/beforeup_${asset_version}_${arch}.deb"

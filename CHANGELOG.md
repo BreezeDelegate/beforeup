@@ -1,7 +1,8 @@
 # Changelog
 
-## 0.3.2-preview.1
+## 0.3.2-preview.2
 
+- Use GitHub-compatible Debian package filenames so downloaded SHA-256 manifests verify correctly.
 - Package Linux amd64 and arm64 binaries as native Debian packages, without installer scripts or privilege changes.
 - Add reproducible install/remove checks on Debian 13 and Ubuntu 24.04/26.04.
 - Document executable smoke tests on ten Linux distribution base images, distinctly from full host integration.
