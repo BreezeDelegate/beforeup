@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/readme-banner.webp" alt="BeforeUp — contrôles Docker Compose avant déploiement" width="960" />
+</p>
+
 # BeforeUp
 
 Contrôler un projet Docker Compose avant son démarrage ou son redéploiement : ports, montages, variables d’environnement et images locales.

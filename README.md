@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/readme-banner.webp" alt="BeforeUp — Docker Compose preflight and deployment-change checks" width="960" />
+</p>
+
 # BeforeUp
 
 **Docker Compose preflight and deployment-change checks for Linux.** Find host port conflicts, missing bind mounts, changed environment settings and stale local images before changing a running stack.
