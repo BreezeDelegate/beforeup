@@ -8,7 +8,7 @@
 
 A Compose file can be valid while its host is not ready. The published port may already be in use, a required bind-mount path may be missing, or Docker may be inaccessible to the account running the deployment.
 
-BeforeUp checks those conditions without starting containers. It relies on Docker Compose to parse the project rather than maintaining another Compose parser.
+BeforeUp checks those conditions without starting containers. It also warns when a local Compose build context directory is missing. It relies on Docker Compose to parse the project rather than maintaining another Compose parser.
 
 **Linux only, for now.** This is an early release. Read the [limitations](#what-it-does-not-know) before using it in automation.
 

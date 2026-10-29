@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.2-preview.1
+
+- Warn about missing local Compose build contexts even when Docker Compose config validation succeeds; remote Git contexts are excluded.
+- Check six publicly available Docker Compose examples without launching their full applications.
+- Verify a full disposable Compose startup/comparison cycle with a changed environment value and bind mount, using an opt-in integration script.
+- Document a real non-root container write denial and the rootless cgroup limitation without claiming full rootless support.
+
+
 ## 0.4.1-preview.1
 
 - Keep unrelated running-service comparisons when a scaled service is present, including orphaned replicas.

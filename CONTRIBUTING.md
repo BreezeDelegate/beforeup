@@ -19,7 +19,7 @@ To run the opt-in Compose CLI integration test:
 BEFOREUP_INTEGRATION=1 go test ./...
 ```
 
-The integration test resolves a temporary Compose project but does not start containers. `make check` verifies formatting without editing source files; `make fmt` applies formatting intentionally.
+The integration test resolves a temporary Compose project but does not start containers. An additional, explicitly opt-in check uses `sh tests/live-compare-smoke.sh ./beforeup`. It starts one network-isolated Alpine container from an image already cached on the host, then removes the temporary Compose project. It never publishes ports or pulls images; run only on a Docker host where starting a disposable test container is permitted. `make check` verifies formatting without editing source files; `make fmt` applies formatting intentionally.
 
 Use the existing Go standard library when practical. Don't add container-management features, a daemon or a second Compose parser without an explicit need.
 

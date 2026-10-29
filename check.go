@@ -105,6 +105,9 @@ func freeBytes(path string) (uint64, error) {
 }
 
 type service struct {
+	Build struct {
+		Context string `json:"context"`
+	} `json:"build"`
 	Image       string             `json:"image"`
 	Platform    string             `json:"platform"`
 	Environment map[string]*string `json:"environment"`
@@ -382,6 +385,16 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 			}
 			if !attributed && err == nil && occupied(n, p.HostIP, items) {
 				r.add("PORT_IN_USE", "warning", name, fmt.Sprintf("Host %s port %d already has a listener.", protocol, n), "Check the listener with ss. The owner could not be confirmed as this Compose service.")
+			}
+		}
+		// Compose resolves local build contexts but does not guarantee that
+		// their source directories exist. An image can sometimes be reused,
+		// so a missing context is a warning rather than a certain blocker.
+		if contextPath := svc.Build.Context; contextPath != "" && !strings.Contains(contextPath, "://") && !strings.HasPrefix(contextPath, "git@") {
+			if _, err := h.Stat(filepath.Clean(contextPath)); os.IsNotExist(err) {
+				r.add("BUILD_CONTEXT_MISSING", "warning", name, "A local build context directory does not exist.", "Check the build.context path before running docker compose up --build. docker compose config does not verify local build directories.")
+			} else if err != nil {
+				r.add("BUILD_CONTEXT_UNKNOWN", "warning", name, "A local build context could not be inspected.", "Check the build.context path and local filesystem permissions.")
 			}
 		}
 		for _, v := range svc.Volumes {

@@ -6,9 +6,11 @@ BeforeUp is a public Linux-only preview. The baseline `check` command verifies D
 
 ### Verified
 
-- 0.4.1 preview: scaled orphan services are no longer silently omitted, mount-target details are no longer echoed into findings, and deterministic, aggregated mount warnings reduce noise. Five regressions were reproduced before the fixes; the scaled-orphan case was also validated with three isolated Docker containers.
+- User-scenario coverage (0.4.2 preview): six representative official Docker Compose files passed static analysis. A missing local build-context check was added after the multi-service NGINX/Node.js/Redis example reproduced the gap. A separate real disposable Compose service validated matching and changed environment/mount diagnostics without host-path disclosure. Rootless application container writes remain unverified because this VPS lacks the required AppArmor/cgroup delegation in its test session.
 
-- 0.4 preview: Docker Desktop VM detection, conservative rootless port/bind warnings, dual-stack ambiguity and optional strict CI mode have dedicated regressions. IPv6 loopback listener, dual-bind Compose config/dry-run and strict exit codes were exercised on the Debian VPS. A real isolated rootless daemon was also exercised against a bind-source fixture without launching an application container. Docker Desktop VM and SELinux-enforcing hosts were not tested.
+- Comparison robustness (0.4.1 preview): scaled orphan services are no longer silently omitted, mount-target details are no longer echoed into findings, and deterministic, aggregated mount warnings reduce noise. Five regressions were reproduced before the fixes; the scaled-orphan case was also validated with three isolated Docker containers.
+
+- Host-context safeguards (0.4 preview): Docker Desktop VM detection, conservative rootless port/bind warnings, dual-stack ambiguity and optional strict CI mode have dedicated regressions. IPv6 loopback listener, dual-bind Compose config/dry-run and strict exit codes were exercised on the Debian VPS. A real isolated rootless daemon was also exercised against a bind-source fixture without launching an application container. Docker Desktop VM and SELinux-enforcing hosts were not tested.
 - The README banner now has transparent, rounded corners from a deterministic image-mask script; the source design was not regenerated.
 
 

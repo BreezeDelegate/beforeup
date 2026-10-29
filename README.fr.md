@@ -45,6 +45,7 @@ La comparaison reste partielle : elle vérifie les références d'images et les 
 - Le compte utilisé peut-il communiquer avec Docker Engine ?
 - Un port publié TCP ou UDP est-il déjà occupé ou déclaré deux fois par des services distincts ?
 - Un chemin utilisé comme volume local est-il absent ?
+- Un répertoire local utilisé comme contexte de construction (`build.context`) est-il absent ?
 - Le stockage de Docker est-il sous un seuil d'espace libre ?
 
 Les ports déjà publiés par le même service sont reconnus. Un autre projet Docker utilisant le port demandé est signalé séparément. Une collision potentielle entre IPv4 et IPv6 reste un avertissement : le comportement dépend du réseau hôte. Cette situation ne bloque pas forcément le démarrage : il faut d'abord vérifier à quel service appartient le port. De même, certains montages autorisent Docker à créer automatiquement un dossier absent. Ces cas sont signalés comme des avertissements.

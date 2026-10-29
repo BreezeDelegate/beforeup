@@ -55,6 +55,18 @@ BeforeUp detects changed image references and, when both image IDs can be read, 
 
 See [a longstanding question about updating images without changing tags](https://stackoverflow.com/questions/37685581/how-to-get-docker-compose-to-use-the-latest-image-from-the-repository), [a more specific Compose question](https://stackoverflow.com/questions/73429215/force-docker-compose-to-pull-latest-image-for-a-container) and [the Compose up documentation](https://docs.docker.com/reference/cli/docker/compose/up/).
 
+## "Compose config succeeds, but my build folder is missing"
+
+Docker Compose can accept a syntactically valid `build.context` even if the local directory is absent. This often becomes visible only when the service needs to be built. Check the context relative to the Compose file and try the native commands first:
+
+```sh
+docker compose config -q
+docker compose --dry-run up --build
+beforeup check -f compose.yaml
+```
+
+The `BUILD_CONTEXT_MISSING` warning identifies a missing local build directory without printing its path. This is a warning rather than a guaranteed failure because deployments can sometimes reuse an existing image. Remote Git build contexts are not checked as local directories.
+
 ## "Rootless Docker cannot bind host port 80"
 
 Rootless Docker can fail to publish ports below 1024. First check the engine mode, host policy and error message with `docker info` and the [official rootless troubleshooting guide](https://docs.docker.com/engine/security/rootless/troubleshoot/). Where possible, choose a high host port such as 8080 instead. System policy and RootlessKit capabilities can allow low ports; avoid assuming the port will definitely fail.
