@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const version = "0.3.1-preview.1"
+const version = "0.3.2-preview.1"
 
 type listFlag []string
 

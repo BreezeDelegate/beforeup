@@ -23,6 +23,8 @@ go build -o beforeup .
 
 Or use the Linux executable and SHA-256 checksum attached to a [release](https://github.com/BreezeDelegate/beforeup/releases). Check the checksum before running a downloaded executable.
 
+For Debian and Ubuntu, a native `.deb` package is also available in the 0.3.2 preview release. See [installation instructions](docs/install.md) and the [compatibility matrix](docs/platform-support.md).
+
 ```sh
 beforeup check
 beforeup check -f compose.yaml --format json

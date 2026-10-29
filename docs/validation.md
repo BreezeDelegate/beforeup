@@ -69,3 +69,9 @@ The change was exercised in read-only mode against two running Compose projects 
 Questions about `docker compose pull`, unchanged image tags and whether `docker compose up` recreates a container led to a targeted read-only check. BeforeUp now compares the image ID used by the running container against the ID of the image currently available **locally** for that tag. It reports `LOCAL_IMAGE_UPDATED` only when both IDs are valid and different. If the image is unavailable locally, the check makes no claim. Services pinned to another platform are excluded from this comparison until platform-sensitive checks are supported. The check makes no remote registry request.
 
 The regression was reproduced before the change and passes after it. It includes a case with matching local IDs and one where the local image cannot be inspected. No image was pulled and no container was recreated.
+
+## Linux binary and package portability (29 October 2026)
+
+A static Linux/amd64 binary executed `beforeup version` successfully in ten isolated OCI base images: Ubuntu 24.04 and 26.04, Debian 12 and 13, Alpine 3.22, Fedora 43, Rocky 9, Arch Linux rolling, openSUSE Leap 15.6 and Amazon Linux 2023. These tests used no host Docker socket or network inside containers. They establish only executable startup, not full Engine integration.
+
+A Debian package was built for amd64 and arm64. The amd64 package installed, ran and was removed without leftover executable on Debian 13 and Ubuntu 24.04/26.04. The arm64 package passed archive metadata inspection; ARM runtime testing remains pending. See [platform support](platform-support.md).

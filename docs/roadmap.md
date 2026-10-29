@@ -26,6 +26,12 @@
 - Identify locally updated image IDs even when the image tag stays unchanged.
 - Link troubleshooting information to the related Docker questions and native fixes.
 
+## 0.3.2 preview
+
+- Distribute native Debian packages alongside static archives without requiring an installer script.
+- Validate package install/remove in isolated Debian and Ubuntu containers.
+- Track ten Linux distribution binary smoke tests separately from full Docker integration support.
+
 ## Before a stable release
 
 - Validate against additional real Compose projects from users outside the maintainer's infrastructure.

@@ -17,7 +17,7 @@ go build -o beforeup .
 ./beforeup check -f compose.yaml
 ```
 
-Des exécutables et leurs empreintes SHA-256 sont disponibles dans les [releases](https://github.com/BreezeDelegate/beforeup/releases).
+Des exécutables et leurs empreintes SHA-256 sont disponibles dans les [releases](https://github.com/BreezeDelegate/beforeup/releases). Les versions de prépublication à partir de 0.3.2 incluent également des paquets `.deb` pour Debian et Ubuntu, avec [guide d’installation](docs/install.md) et [compatibilité vérifiée](docs/platform-support.md).
 
 ```sh
 beforeup check

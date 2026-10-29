@@ -6,6 +6,8 @@ BeforeUp is a public Linux-only preview. The baseline `check` command verifies D
 
 ### Verified
 
+- Linux/amd64 static binary version smoke passed on ten isolated distribution images. Debian/Ubuntu `.deb` amd64 package install, version command and removal passed in Debian 13, Ubuntu 24.04 and 26.04. ARM64 packaging was built but was not installed on an ARM64 host. See [platform matrix](platform-support.md).
+
 - Added regression coverage for locally updated images with unchanged tags. The check compares only Docker image IDs already available on the host, without fetching from the registry.
 
 - New isolated regression tests cover changed environment values, image references, unavailable runtime metadata and missing services; all values are redacted from output.

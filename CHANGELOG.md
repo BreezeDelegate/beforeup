@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2-preview.1
+
+- Package Linux amd64 and arm64 binaries as native Debian packages, without installer scripts or privilege changes.
+- Add reproducible install/remove checks on Debian 13 and Ubuntu 24.04/26.04.
+- Document executable smoke tests on ten Linux distribution base images, distinctly from full host integration.
+
 ## 0.3.1-preview.1
 
 - Detect when a local image tag points to a different image ID than the running container.
