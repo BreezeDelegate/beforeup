@@ -16,3 +16,7 @@ BeforeUp exists to find a few host-side problems before a Docker Compose project
 - Run tests and package validation locally on the owner's personal VPS.
 
 - Comparing declared environment values reads secrets through Docker inspect. Keep values in memory; report only counts and never print the variable name, value or raw inspect output.
+
+- Docker Desktop Linux is VM-backed even when it exposes a local Unix socket: skip workstation host probes.
+- Rootless mount access and cross-family IPv4/IPv6 overlaps are uncertain without independent proof; never claim a confirmed blocker from those heuristics alone.
+- `--strict` may fail CI on warnings, but must never re-label a warning as a blocker.

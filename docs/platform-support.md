@@ -30,7 +30,7 @@ The `arm64` package was built with `GOARCH=arm64` and its Debian metadata inspec
 Reproduce the package install/remove check with an authorized local Docker Engine:
 
 ```sh
-sh tests/deb-smoke.sh path/to/beforeup_0.3.3.preview1_amd64.deb
+sh tests/deb-smoke.sh path/to/beforeup_0.4.0.preview1_amd64.deb
 ```
 
 The script creates and removes temporary, network-disabled containers. It does not mount the host Docker socket.
@@ -38,6 +38,22 @@ The script creates and removes temporary, network-disabled containers. It does n
 ## Full behavior tests
 
 The current Go unit and integration tests run on the project maintainer's Debian 13 VPS with a conventional Docker Engine and Docker Compose. They cover Compose configuration resolution, socket inspection, bind mounts, current service metadata and JSON output. Running services are inspected in read-only mode.
+
+### Rootless, VM and IPv6 behavior
+
+Version 0.4 uses Docker's read-only metadata to recognize rootless mode and Docker Desktop for Linux. Rootless low-port and bind-mount messages describe **potential** failure conditions, not a guarantee. RootlessKit capabilities and `net.ipv4.ip_unprivileged_port_start` can allow ports below 1024; a bind source visible on the host does not prove the container's UID mapping can access it.
+
+On Docker Desktop for Linux, Compose validation and running-container metadata comparisons can be performed, but host socket, bind-source and disk probes are intentionally skipped. A Unix socket alone does not prove the Docker Engine shares the workstation filesystem.
+
+IPv4 and IPv6 wildcard bindings may interact differently across daemon, proxy and socket settings. A cross-family potential overlap is reported as uncertain; identical-family collisions remain blockers.
+
+These behaviors have isolated fake-host regressions. IPv6 listeners were tested on the maintainer's Debian host. A second, temporary **real rootless daemon** was also exercised in a read-only check; it was isolated from the production daemon with network access disabled, and then removed. The rootless test did not start an application container or attempt port publication. Docker Desktop was unavailable for live VM tests.
+
+An optional rootless daemon metadata check can be run from a non-root account after installing the rootless prerequisites (no application containers are started):
+
+```sh
+sh tests/rootless-smoke.sh ./beforeup
+```
 
 ### Not yet certified
 

@@ -21,7 +21,7 @@
 - Warn about changed image references and running services missing from the proposal.
 - Link practical troubleshooting to documented user questions, including where native Docker commands are sufficient.
 
-## 0.3.1 preview
+**0.3.1 preview**
 
 - Identify locally updated image IDs even when the image tag stays unchanged.
 - Link troubleshooting information to the related Docker questions and native fixes.
@@ -31,6 +31,15 @@
 - Distribute native Debian packages alongside static archives without requiring an installer script.
 - Validate package install/remove in isolated Debian and Ubuntu containers.
 - Track ten Linux distribution binary smoke tests separately from full Docker integration support.
+
+## 0.4 preview
+
+- Detect Docker Desktop Linux as VM-backed and skip misleading workstation host checks.
+- Explain rootless bind UID/GID uncertainty and low-port limitations with cautious warnings.
+- Avoid treating IPv4/IPv6 wildcard ambiguity as a confirmed port collision.
+- Add optional strict CI exit codes without changing the report's finding severities.
+- Validate IPv6 listeners, Compose dry-run comparisons and CI warnings on the maintainer host.
+- Smoke-test a separate real rootless Engine for safe metadata and bind-source warnings without starting application containers.
 
 ## Before a stable release
 

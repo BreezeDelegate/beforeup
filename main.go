@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const version = "0.3.3-preview.1"
+const version = "0.4.0-preview.1"
 
 type listFlag []string
 
@@ -25,8 +25,8 @@ func (f *listFlag) Set(v string) error {
 
 func usage(w io.Writer) {
 	fmt.Fprintln(w, "BeforeUp: check a Docker Compose project against the local host before starting it.")
-	fmt.Fprintln(w, "Usage: beforeup check [-f compose.yaml] [--env-file .env] [--profile NAME] [--format text|json] [--min-free-gib N]")
-	fmt.Fprintln(w, "       beforeup compare [-f compose.yaml] [--format text|json] (compare against running services)")
+	fmt.Fprintln(w, "Usage: beforeup check [-f compose.yaml] [--env-file .env] [--profile NAME] [--format text|json] [--min-free-gib N] [--strict]")
+	fmt.Fprintln(w, "       beforeup compare [-f compose.yaml] [--format text|json] [--strict] (compare against running services)")
 	fmt.Fprintln(w, "       beforeup version")
 	fmt.Fprintln(w, "No containers are created or started by BeforeUp.")
 }
@@ -53,12 +53,14 @@ func start(args []string, out, errw io.Writer) int {
 	var files, envFiles, profiles listFlag
 	var format string
 	var minFree uint64
+	var strict bool
 	fs.Var(&files, "f", "Compose file (repeatable)")
 	fs.Var(&files, "file", "Compose file (repeatable)")
 	fs.Var(&envFiles, "env-file", "Environment file for Compose (repeatable)")
 	fs.Var(&profiles, "profile", "Compose profile (repeatable)")
 	fs.StringVar(&format, "format", "text", "Output: text or json")
 	fs.Uint64Var(&minFree, "min-free-gib", 2, "Warn when Docker filesystem has less than N GiB free; 0 disables this check")
+	fs.BoolVar(&strict, "strict", false, "Treat warnings as a nonzero exit status (for CI)")
 	if e := fs.Parse(args[1:]); e != nil {
 		return 2
 	}
@@ -87,10 +89,13 @@ func start(args []string, out, errw io.Writer) int {
 		}
 		fmt.Fprintf(out, "\n%d blocker(s), %d warning(s), %d passed\n", report.Summary.Blockers, report.Summary.Warnings, report.Summary.Passed)
 	}
+	return reportExitCode(report, scanErr, strict)
+}
+func reportExitCode(report Report, scanErr error, strict bool) int {
 	if scanErr != nil {
 		return 2
 	}
-	if report.Summary.Blockers > 0 {
+	if report.Summary.Blockers > 0 || strict && report.Summary.Warnings > 0 {
 		return 1
 	}
 	return 0

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0-preview.1
+
+- Skip workstation-side socket, filesystem and disk probes when Docker Desktop for Linux uses a VM.
+- Warn about rootless Docker low host ports and unverified bind-mount UID/GID mapping, without claiming certain failure.
+- Mark potentially overlapping IPv4/IPv6 wildcard bindings as uncertain rather than definite collisions.
+- Add optional `--strict` exit behavior for CI; finding levels remain unchanged.
+- Round the README banner corners with a small transparent WebP mask.
+- Add regression tests and read-only IPv6 listener, dual-stack, CI and isolated rootless daemon checks.
+- Preserve confirmed collisions when two services publish the same host port with default IP bindings.
+
+
 ## 0.3.3-preview.1
 
 - Keep comparing unrelated services when a Compose service has multiple running replicas.

@@ -28,6 +28,7 @@ beforeup check
 beforeup check -f compose.yaml --format json
 beforeup check -f compose.yaml --profile debug --env-file staging.env
 beforeup compare -f compose.yaml
+beforeup compare -f compose.yaml --strict --format json
 ```
 
 Les options `-f`, `--profile` et `--env-file` peuvent être répétées.
@@ -46,17 +47,19 @@ La comparaison reste partielle : elle vérifie les références d'images et les 
 - Un chemin utilisé comme volume local est-il absent ?
 - Le stockage de Docker est-il sous un seuil d'espace libre ?
 
-Les ports déjà publiés par le même service sont reconnus. Un autre projet Docker utilisant le port demandé est signalé séparément. Cette situation ne bloque pas forcément le démarrage : il faut d'abord vérifier à quel service appartient le port. De même, certains montages autorisent Docker à créer automatiquement un dossier absent. Ces cas sont signalés comme des avertissements.
+Les ports déjà publiés par le même service sont reconnus. Un autre projet Docker utilisant le port demandé est signalé séparément. Une collision potentielle entre IPv4 et IPv6 reste un avertissement : le comportement dépend du réseau hôte. Cette situation ne bloque pas forcément le démarrage : il faut d'abord vérifier à quel service appartient le port. De même, certains montages autorisent Docker à créer automatiquement un dossier absent. Ces cas sont signalés comme des avertissements.
+
+Avec Docker rootless, la présence d'un dossier ne garantit pas l'accès depuis le conteneur. Les ports inférieurs à 1024 sont signalés prudemment, car des réglages système peuvent les autoriser. Docker Desktop Linux utilise une VM : les contrôles de sockets, dossiers et disque de l'hôte local sont alors ignorés.
 
 Le seuil disque vaut 2 Gio par défaut ; `--min-free-gib 0` désactive ce contrôle.
 
-Le code de sortie est `0` sans blocage confirmé, `1` en présence d'un blocage, ou `2` si l'analyse n'a pas pu être menée.
+Le code de sortie est `0` sans blocage confirmé, `1` en présence d'un blocage, ou `2` si l'analyse n'a pas pu être menée. Avec `--strict`, un avertissement suffit à renvoyer `1`, sans le transformer artificiellement en blocage dans le rapport.
 
 ## Limites et confidentialité
 
 BeforeUp n'exécute pas `docker compose up`, ne crée pas de répertoires et ne supprime rien. Il ne promet pas qu'une application sera en bonne santé après démarrage. L'outil n'affiche pas les chemins sources résolus des montages, les valeurs de configuration ni les erreurs brutes de Compose, car elles peuvent contenir des données sensibles.
 
-Pour un moteur Docker distant, les vérifications propres à la machine locale sont ignorées : exécute BeforeUp sur la machine cible.
+Pour un moteur Docker distant ou une VM Docker Desktop, les contrôles locaux non fiables sont ignorés. Les tests Docker rootless, SELinux et IPv6 restent partiels : consulte la [matrice de compatibilité](docs/platform-support.md).
 
 [Cas d’usage fréquents (anglais)](docs/common-issues.md) · [Documentation principale en anglais](README.md) · [Sécurité](SECURITY.md) · [Contribuer](CONTRIBUTING.md) · [Validation](docs/validation.md)
 

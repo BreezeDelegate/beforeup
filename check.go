@@ -180,6 +180,36 @@ func overlapping(a, b string) bool {
 	}
 	return a == b
 }
+
+// Docker IPv4/IPv6 wildcard bindings may overlap depending on host
+// dual-stack policy and userland-proxy configuration. Never call that
+// combination a confirmed blocker without that environment evidence.
+func portFamily(ip string) int {
+	ip = strings.Trim(ip, "[]")
+	parsed := net.ParseIP(ip)
+	if parsed == nil {
+		return 0
+	}
+	if parsed.To4() != nil {
+		return 4
+	}
+	return 6
+}
+func uncertainPortOverlap(a, b string) bool {
+	if !overlapping(a, b) || a == b {
+		return false
+	}
+	fa, fb := portFamily(a), portFamily(b)
+	// An unspecified host IP publishes on the default IPv4 wildcard; it
+	// definitely conflicts with explicit IPv4 host bindings.
+	if (a == "" || a == "*") && fb == 4 {
+		return false
+	}
+	if (b == "" || b == "*") && fa == 4 {
+		return false
+	}
+	return fa == 0 || fb == 0 || fa != fb
+}
 func occupied(port int, ip string, items []socket) bool {
 	for _, s := range items {
 		if s.port == port && overlapping(ip, s.ip) {
@@ -222,6 +252,32 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 	} else {
 		r.add("DAEMON", "pass", "", "Docker Engine is reachable.", "")
 	}
+	// Docker Desktop on Linux targets a VM even though its context has a Unix socket.
+	// Reading sockets and paths on the Linux workstation would be misleading.
+	if daemonErr == nil {
+		osName, osErr := h.Run(ctx, "docker", "info", "--format", "{{.OperatingSystem}}")
+		if osErr == nil && strings.Contains(strings.ToLower(string(osName)), "docker desktop") {
+			r.add("DESKTOP_VM", "warning", "", "Docker Desktop uses a VM; workstation host checks would not describe its Docker Engine.", "Docker Compose is resolved; host sockets, mounts and disk checks were skipped. Run on a native Docker Engine host for these checks.")
+			if o.Compare {
+				comparison(ctx, h, m, o.Profiles, h.Getenv("COMPOSE_PROFILES"), &r)
+			}
+			return r, nil
+		}
+	}
+	rootless := false
+	if daemonErr == nil {
+		opts, err := h.Run(ctx, "docker", "info", "--format", "{{json .SecurityOptions}}")
+		var names []string
+		if err == nil && json.Unmarshal(opts, &names) == nil {
+			for _, name := range names {
+				if strings.Contains(strings.ToLower(name), "rootless") {
+					rootless = true
+					break
+				}
+			}
+		}
+	}
+	rootlessBind := false
 	tcpRaw, tcpErr := h.Run(ctx, "ss", "-H", "-ltn")
 	udpRaw, udpErr := h.Run(ctx, "ss", "-H", "-lun")
 	tcp, udp := parseSockets(tcpRaw), parseSockets(udpRaw)
@@ -241,6 +297,8 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 		proto   string
 	}
 	var claims []claim
+	rootlessPortChecked := false
+	rootlessPortThreshold := -1
 	for _, name := range services {
 		svc := m.Services[name]
 		if !profileEnabled(svc.Profiles, o.Profiles, h.Getenv("COMPOSE_PROFILES")) {
@@ -261,7 +319,27 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 			}
 			for _, c := range claims {
 				if c.port == n && c.proto == protocol && c.service != name && overlapping(c.host, p.HostIP) {
-					r.add("PORT_COLLISION", "blocker", name, fmt.Sprintf("Two services publish overlapping %s port %d bindings (%s and %s).", protocol, n, c.service, name), "Change one published host port before starting the stack.")
+					if uncertainPortOverlap(c.host, p.HostIP) {
+						r.add("PORT_DUAL_STACK_UNCERTAIN", "warning", name, fmt.Sprintf("Two services publish %s port %d with potentially overlapping IPv4/IPv6 bindings.", protocol, n), "Check IPv6-only socket mode and Docker userland-proxy behavior before deploying.")
+					} else {
+						r.add("PORT_COLLISION", "blocker", name, fmt.Sprintf("Two services publish overlapping %s port %d bindings (%s and %s).", protocol, n, c.service, name), "Change one published host port before starting the stack.")
+					}
+				}
+			}
+			if rootless && n < 1024 {
+				// Resolve the host-wide policy only when necessary, once per run.
+				if !rootlessPortChecked {
+					rootlessPortChecked = true
+					output, err := h.Run(ctx, "sysctl", "-n", "net.ipv4.ip_unprivileged_port_start")
+					if err == nil {
+						if value, parseErr := strconv.Atoi(strings.TrimSpace(string(output))); parseErr == nil && value >= 0 && value <= 65535 {
+							rootlessPortThreshold = value
+						}
+					}
+				}
+				// RootlessKit capabilities can still permit privileged ports.
+				if rootlessPortThreshold < 0 || n < rootlessPortThreshold {
+					r.add("ROOTLESS_LOW_PORT", "warning", name, fmt.Sprintf("Rootless Docker may not be permitted to publish host port %d.", n), "Prefer an unprivileged port, or check net.ipv4.ip_unprivileged_port_start and RootlessKit CAP_NET_BIND_SERVICE. The binding is not proven impossible.")
 				}
 			}
 			claims = append(claims, claim{name, p.HostIP, n, protocol})
@@ -313,6 +391,9 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 			source := filepath.Clean(v.Source)
 			_, err := h.Stat(source)
 			if err == nil {
+				if rootless {
+					rootlessBind = true
+				}
 				continue
 			}
 			if os.IsNotExist(err) {
@@ -326,7 +407,10 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 			}
 		}
 	}
-	if tcpErr == nil && udpErr == nil && !hasID(r, "PORT_IN_USE") && !hasID(r, "PORT_USED_BY_OTHER") && !hasID(r, "PORT_COLLISION") && !hasID(r, "PORT_BINDING_CHANGED") {
+	if rootlessBind {
+		r.add("ROOTLESS_BIND_UNVERIFIED", "warning", "", "Existing bind sources were found, but their accessibility through rootless UID/GID mappings was not verified.", "Check container user, subordinate UID/GID mappings and the target mount permissions. Host path existence alone cannot prove container write access.")
+	}
+	if tcpErr == nil && udpErr == nil && !hasID(r, "PORT_DUAL_STACK_UNCERTAIN") && !hasID(r, "PORT_IN_USE") && !hasID(r, "PORT_USED_BY_OTHER") && !hasID(r, "PORT_COLLISION") && !hasID(r, "PORT_BINDING_CHANGED") {
 		r.add("PORTS", "pass", "", "No unexplained published-port conflicts detected.", "")
 	}
 	if o.MinFreeGiB > 0 && daemonErr == nil {

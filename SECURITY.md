@@ -6,7 +6,7 @@ Docker Compose can expand environment variables and read local files, including 
 
 Docker access is security-sensitive. Membership in the `docker` group often amounts to administrator-level privileges. BeforeUp never requests `sudo` or broadens Docker permissions on your behalf.
 
-Local socket and filesystem checks are skipped for remote or unconfirmed Docker endpoints. If the checks are incomplete, the report must say so. No check guarantees that an application will start successfully.
+Local socket and filesystem checks are skipped for remote, VM-backed Docker Desktop or unconfirmed Docker endpoints. If the checks are incomplete, the report must say so. Rootless UID/GID mapping, SELinux policies and IPv6 cross-family bindings cannot be inferred from file existence or a simple socket match; they are treated conservatively. No check guarantees that an application will start successfully.
 
 ## Report a vulnerability
 

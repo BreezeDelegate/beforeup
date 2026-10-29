@@ -6,6 +6,10 @@ BeforeUp is a public Linux-only preview. The baseline `check` command verifies D
 
 ### Verified
 
+- 0.4 preview: Docker Desktop VM detection, conservative rootless port/bind warnings, dual-stack ambiguity and optional strict CI mode have dedicated regressions. IPv6 loopback listener, dual-bind Compose config/dry-run and strict exit codes were exercised on the Debian VPS. A real isolated rootless daemon was also exercised against a bind-source fixture without launching an application container. Docker Desktop VM and SELinux-enforcing hosts were not tested.
+- The README banner now has transparent, rounded corners from a deterministic image-mask script; the source design was not regenerated.
+
+
 - A disposable Docker integration test with two worker replicas and an independent API container confirmed `REPLICAS_UNSUPPORTED` without hiding the remaining service or claiming a full match. The test containers were removed immediately after validation.
 
 - Linux/amd64 static binary version smoke passed on ten isolated distribution images. Debian/Ubuntu `.deb` amd64 package install, version command and removal passed in Debian 13, Ubuntu 24.04 and 26.04. ARM64 packaging was built but was not installed on an ARM64 host. See [platform matrix](platform-support.md).
@@ -26,7 +30,7 @@ BeforeUp is a public Linux-only preview. The baseline `check` command verifies D
 - Only Linux is supported. Remote Docker contexts do not get local host checks.
 - Compare checks port bindings, data mounts, declared environment values and image references; it does not check remote registry digests, health, inherited environment settings, resource reservations or network topology.
 - Multiple replicas of one Compose service receive an explicit `REPLICAS_UNSUPPORTED` warning; unrelated services are still checked. No baseline is reported as unknown, never as healthy.
-- Rootless Docker, IPv6 dual-stack and multiple network namespaces need additional independent coverage.
+- Rootless Docker, Docker Desktop VM behavior, IPv6 dual-stack and multiple network namespaces need independent cross-platform integration coverage; the host checks were made conservative but not certified.
 - No users outside the maintainer infrastructure have evaluated the program yet. No unsolicited promotional replies were posted; Stack Overflow discussions used as source cases were already answered. No success or GitHub popularity can be inferred from internal tests.
 
 ### Discoverability

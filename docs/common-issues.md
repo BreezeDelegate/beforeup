@@ -55,6 +55,38 @@ BeforeUp detects changed image references and, when both image IDs can be read, 
 
 See [a longstanding question about updating images without changing tags](https://stackoverflow.com/questions/37685581/how-to-get-docker-compose-to-use-the-latest-image-from-the-repository), [a more specific Compose question](https://stackoverflow.com/questions/73429215/force-docker-compose-to-pull-latest-image-for-a-container) and [the Compose up documentation](https://docs.docker.com/reference/cli/docker/compose/up/).
 
+## "Rootless Docker cannot bind host port 80"
+
+Rootless Docker can fail to publish ports below 1024. First check the engine mode, host policy and error message with `docker info` and the [official rootless troubleshooting guide](https://docs.docker.com/engine/security/rootless/troubleshoot/). Where possible, choose a high host port such as 8080 instead. System policy and RootlessKit capabilities can allow low ports; avoid assuming the port will definitely fail.
+
+```sh
+beforeup check -f compose.yaml
+```
+
+BeforeUp warns with `ROOTLESS_LOW_PORT` when a rootless engine and a restrictive or unknown port policy are detected. It **does not** grant capabilities or change system security settings.
+
+## "The bind-mount path exists, but a rootless container cannot write to it"
+
+Checking the host path alone is insufficient when container UIDs/GIDs are mapped to other host IDs. First check the container's declared user, rootless Docker identity mappings and ownership of the bind source. Avoid blanket recursive permission changes, especially on databases.
+
+```sh
+beforeup check -f compose.yaml
+```
+
+BeforeUp reports `ROOTLESS_BIND_UNVERIFIED` to make this uncertainty visible. This is not a substitute for testing the application's actual write path or diagnosing SELinux labels.
+
+## "Docker Desktop Linux says my host directory is missing"
+
+[Docker Desktop for Linux runs Docker Engine in a VM](https://docs.docker.com/desktop/setup/install/linux/), even though the active context may expose a local Unix socket. An application inspecting the workstation's paths or listeners is not necessarily inspecting the Docker daemon's environment.
+
+```sh
+docker context show
+docker info
+beforeup check -f compose.yaml
+```
+
+BeforeUp reports `DESKTOP_VM` and skips workstation-side filesystem, socket and disk checks. It may still compare running container metadata. For native host diagnostics, use a Docker Engine installed directly on the intended Linux server.
+
 ## What BeforeUp intentionally does not answer
 
 - Whether the application is healthy after startup.
