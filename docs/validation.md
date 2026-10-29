@@ -41,3 +41,17 @@ Two existing Compose projects on the same host were also inspected without launc
 Before widespread recommendation, obtain feedback from independent developers working with real Compose projects. Investigate false positives in rootless Docker, unusual network namespaces and IPv6 dual-stack listeners. Extend operating-system support only when these checks can be tested there.
 
 Results from independent users have **not** yet been collected. Usage, downloads and stars should not be presented as proof of quality.
+
+## Running-stack comparison and synthetic matrix (29 October 2026)
+
+The preview comparison was tested against two running Compose projects on the maintainer's Linux VPS. In an unmodified PostgreSQL service, BeforeUp recognized that its published port belonged to the same running service and found no port or mount changes. An alternate Compose override proposed a different published port. Docker Compose accepted the override; BeforeUp reported both the port being removed and the proposed replacement. No containers were restarted.
+
+Another running application was inspected. The initial comparison mistook a Compose-generated named volume identifier for a volume change. A regression test was written and the comparison fixed to resolve the logical Compose volume name. After the correction, the remaining differences related to actual host bind-source paths from different release directories.
+
+A **16-case synthetic validation matrix** was executed with `docker compose config` and the BeforeUp Linux binary. The cases covered valid and invalid configuration, required and auto-created bind sources, ports owned by the same or another Compose project, duplicate published ports, active and inactive Compose profiles, low disk thresholds, existing bind sources, IPv4 binding and protocol distinctions, and image references that are not checked at this stage. Fifteen configurations were accepted by Compose; one missing required variable was rejected by Compose and BeforeUp. BeforeUp identified extra host-side findings in the relevant accepted scenarios.
+
+The portable subset of 14 cases is reproducible via `python3 tests/compose_matrix.py --binary ./beforeup` after compiling the tool. The two host-dependent port ownership scenarios were exercised separately against the actual running VPS and through isolated Go regression tests. This fixture script never starts or removes containers.
+
+The matrix also caught a bug: Compose can validly select zero services when all are disabled by profiles. BeforeUp now reports `NO_ACTIVE_SERVICES` without claiming the Compose file is invalid. It does **not** verify whether a referenced image can be downloaded; the image-reference case remains a documented gap.
+
+All these cases are internal tests. No independent developer adoption has yet been measured, and competing tools were compared at the documentation/feature level rather than through an independently validated execution benchmark. These results do not establish superiority over other products.

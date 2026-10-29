@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const version = "0.1.0-preview.1"
+const version = "0.2.0-preview.1"
 
 type listFlag []string
 
@@ -26,6 +26,7 @@ func (f *listFlag) Set(v string) error {
 func usage(w io.Writer) {
 	fmt.Fprintln(w, "BeforeUp: check a Docker Compose project against the local host before starting it.")
 	fmt.Fprintln(w, "Usage: beforeup check [-f compose.yaml] [--env-file .env] [--profile NAME] [--format text|json] [--min-free-gib N]")
+	fmt.Fprintln(w, "       beforeup compare [-f compose.yaml] [--format text|json] (compare against running services)")
 	fmt.Fprintln(w, "       beforeup version")
 	fmt.Fprintln(w, "No containers are created or started by BeforeUp.")
 }
@@ -42,7 +43,7 @@ func start(args []string, out, errw io.Writer) int {
 	case "help", "-h", "--help":
 		usage(out)
 		return 0
-	case "check":
+	case "check", "compare":
 	default:
 		usage(errw)
 		return 2
@@ -65,7 +66,7 @@ func start(args []string, out, errw io.Writer) int {
 		fmt.Fprintln(errw, "Unknown argument or output format. Run 'beforeup help'.")
 		return 2
 	}
-	report, scanErr := inspect(context.Background(), Options{[]string(files), []string(envFiles), []string(profiles), minFree}, realHost())
+	report, scanErr := inspect(context.Background(), Options{Files: []string(files), EnvFiles: []string(envFiles), Profiles: []string(profiles), MinFreeGiB: minFree, Compare: args[0] == "compare"}, realHost())
 	if format == "json" {
 		b, _ := json.MarshalIndent(report, "", "  ")
 		fmt.Fprintln(out, string(b))

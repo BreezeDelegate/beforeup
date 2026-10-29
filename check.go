@@ -50,6 +50,7 @@ func (r *Report) add(id, level, service, message, advice string) {
 type Options struct {
 	Files, EnvFiles, Profiles []string
 	MinFreeGiB                uint64
+	Compare                   bool
 }
 
 func (o Options) args() []string {
@@ -113,6 +114,7 @@ type service struct {
 	Volumes []struct {
 		Type   string `json:"type"`
 		Source string `json:"source"`
+		Target string `json:"target"`
 		Bind   struct {
 			CreateHostPath *bool `json:"create_host_path"`
 		} `json:"bind"`
@@ -121,6 +123,9 @@ type service struct {
 type model struct {
 	Name     string             `json:"name"`
 	Services map[string]service `json:"services"`
+	Volumes  map[string]struct {
+		Name string `json:"name"`
+	} `json:"volumes"`
 }
 
 func localDocker(ctx context.Context, h Host) bool {
@@ -194,12 +199,16 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 		return r, errors.New("compose model too large")
 	}
 	var m model
-	if json.Unmarshal(raw, &m) != nil || len(m.Services) == 0 {
+	if json.Unmarshal(raw, &m) != nil || m.Name == "" {
 		r.add("COMPOSE", "blocker", "", "Compose returned no usable services.", "Inspect docker compose config.")
 		return r, errors.New("invalid compose output")
 	}
 	r.Project = m.Name
 	r.add("COMPOSE", "pass", "", "Docker Compose configuration is valid.", "")
+	if len(m.Services) == 0 {
+		r.add("NO_ACTIVE_SERVICES", "warning", "", "Compose selected no active services.", "Enable the relevant profile or check the selected Compose files. There is nothing to start in this configuration.")
+		return r, nil
+	}
 	if !localDocker(ctx, h) {
 		r.add("CONTEXT", "warning", "", "Docker endpoint is remote or its location could not be confirmed.", "Local socket, filesystem and disk checks were skipped. Run BeforeUp on the Docker host.")
 		return r, nil
@@ -268,8 +277,30 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 			default:
 				continue
 			}
-			if err == nil && occupied(n, p.HostIP, items) {
-				r.add("PORT_IN_USE", "warning", name, fmt.Sprintf("Host %s port %d already has a listener.", protocol, n), "Check the listener with ss. An already-running Compose stack can legitimately own its own port.")
+			attributed := false
+			if daemonErr == nil {
+				owners, ownerErr := portOwners(ctx, h, n, protocol, p.HostIP)
+				if ownerErr == nil && len(owners) > 0 {
+					own := true
+					for _, owner := range owners {
+						if owner.Project != m.Name || owner.Service != name || !owner.Exact {
+							own = false
+							break
+						}
+					}
+					if own {
+						r.add("PORT_OWNED_BY_SERVICE", "pass", name, fmt.Sprintf("Host %s port %d is already published by this running service.", protocol, n), "This is expected for a currently running stack.")
+					} else if len(owners) == 1 && owners[0].Project == m.Name && owners[0].Service == name {
+						r.add("PORT_BINDING_CHANGED", "warning", name, fmt.Sprintf("The running service publishes %s port %d on a different host address.", protocol, n), "The proposed binding differs from the running container; check local and remote access before deploying.")
+					} else {
+						o := owners[0]
+						r.add("PORT_USED_BY_OTHER", "warning", name, fmt.Sprintf("Host %s port %d is published by Docker project %s, service %s.", protocol, n, o.Project, o.Service), "Check which container owns the binding before deploying; another running project may be affected.")
+					}
+					attributed = true
+				}
+			}
+			if !attributed && err == nil && occupied(n, p.HostIP, items) {
+				r.add("PORT_IN_USE", "warning", name, fmt.Sprintf("Host %s port %d already has a listener.", protocol, n), "Check the listener with ss. The owner could not be confirmed as this Compose service.")
 			}
 		}
 		for _, v := range svc.Volumes {
@@ -286,14 +317,14 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 				if v.Bind.CreateHostPath != nil && !*v.Bind.CreateHostPath {
 					level, advice = "blocker", "Create the required path or change the bind declaration before startup."
 				}
-				r.add("BIND_MISSING", level, name, "Bind source does not exist: "+source, advice)
+				r.add("BIND_MISSING", level, name, "A bind source for this service does not exist.", advice)
 			} else {
-				r.add("BIND_UNKNOWN", "warning", name, "Cannot inspect bind source: "+source, "Check permissions and host mounts.")
+				r.add("BIND_UNKNOWN", "warning", name, "A bind source for this service could not be inspected.", "Check permissions and host mounts.")
 			}
 		}
 	}
-	if tcpErr == nil && udpErr == nil && !hasID(r, "PORT_IN_USE") {
-		r.add("PORTS", "pass", "", "No occupied published ports detected.", "")
+	if tcpErr == nil && udpErr == nil && !hasID(r, "PORT_IN_USE") && !hasID(r, "PORT_USED_BY_OTHER") && !hasID(r, "PORT_COLLISION") && !hasID(r, "PORT_BINDING_CHANGED") {
+		r.add("PORTS", "pass", "", "No unexplained published-port conflicts detected.", "")
 	}
 	if o.MinFreeGiB > 0 && daemonErr == nil {
 		path := strings.TrimSpace(string(root))
@@ -307,6 +338,13 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 			r.add("DISK_LOW", "warning", "", fmt.Sprintf("Docker's filesystem has about %d GiB free; threshold is %d GiB.", free/1073741824, o.MinFreeGiB), "This warns about limited headroom; it does not estimate image download size.")
 		} else {
 			r.add("DISK", "pass", "", fmt.Sprintf("At least %d GiB free in Docker's data filesystem.", o.MinFreeGiB), "")
+		}
+	}
+	if o.Compare {
+		if daemonErr != nil {
+			r.add("BASELINE_UNKNOWN", "warning", "", "Running service comparison needs Docker Engine access.", "Fix Docker access and rerun compare.")
+		} else {
+			comparison(ctx, h, m, o.Profiles, h.Getenv("COMPOSE_PROFILES"), &r)
 		}
 	}
 	return r, nil
@@ -327,10 +365,16 @@ func profileEnabled(serviceProfiles, selected []string, fromEnv string) bool {
 	}
 	active := make(map[string]bool, len(selected))
 	for _, p := range selected {
+		if p == "*" {
+			return true
+		}
 		active[p] = true
 	}
 	for _, p := range strings.Split(fromEnv, ",") {
 		if p = strings.TrimSpace(p); p != "" {
+			if p == "*" {
+				return true
+			}
 			active[p] = true
 		}
 	}

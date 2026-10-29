@@ -2,7 +2,7 @@
 
 BeforeUp reads Docker Compose configuration and inspects the local host. It does not start services, clean Docker resources or rewrite project files.
 
-Docker Compose can expand environment variables and read local files, including secrets. BeforeUp does not include the resulting values or raw Compose error output in its reports. It holds the resolved model in memory to inspect ports and bind sources. Avoid running untrusted Compose projects.
+Docker Compose can expand environment variables and read local files, including secrets. The compare command also reads the current container port and mount metadata through Docker inspect (not environment values). BeforeUp does not include those interpolated values, resolved host bind-source paths or raw Compose error output in its reports. It holds the resolved model in memory to inspect ports and bind sources. Avoid running untrusted Compose projects.
 
 Docker access is security-sensitive. Membership in the `docker` group often amounts to administrator-level privileges. BeforeUp never requests `sudo` or broadens Docker permissions on your behalf.
 

@@ -8,6 +8,13 @@
 - Text and machine-readable JSON; useful exit codes.
 - No automatic changes to the host.
 
+## v0.2 preview
+
+- Identify owners of published Docker ports instead of treating every live binding as an unexplained conflict.
+- Compare running Compose services with proposed host port and data-mount configurations.
+- Distinguish named Docker volumes from changed data sources.
+- Confirm behavior with a 16-case read-only synthetic validation matrix.
+
 ## Before a stable release
 
 - Validate against additional real Compose projects from users outside the maintainer's infrastructure.

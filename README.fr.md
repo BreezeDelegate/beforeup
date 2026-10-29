@@ -23,9 +23,16 @@ Des exécutables et leurs empreintes SHA-256 sont disponibles dans les [releases
 beforeup check
 beforeup check -f compose.yaml --format json
 beforeup check -f compose.yaml --profile debug --env-file staging.env
+beforeup compare -f compose.yaml
 ```
 
 Les options `-f`, `--profile` et `--env-file` peuvent être répétées.
+
+## Comparer avec une installation en cours
+
+`beforeup compare -f compose.yaml` examine les conteneurs **encore actifs** du même projet. Il signale les ports ajoutés ou retirés, les changements de source des montages et les montages qui disparaîtraient de la configuration proposée.
+
+La comparaison reste partielle : elle n'analyse ni les changements d'image, ni les variables d'environnement, ni le comportement de l'application. Si les conteneurs ne sont pas accessibles, elle ne prétend pas disposer d'une référence. Rien n'est redémarré ou modifié.
 
 ## Ce qui est vérifié
 
@@ -35,7 +42,7 @@ Les options `-f`, `--profile` et `--env-file` peuvent être répétées.
 - Un chemin utilisé comme volume local est-il absent ?
 - Le stockage de Docker est-il sous un seuil d'espace libre ?
 
-Un port occupé n'est pas toujours une erreur : il peut appartenir à un conteneur du même projet déjà démarré. De même, certains montages autorisent Docker à créer automatiquement un dossier absent. Ces cas sont signalés comme des avertissements.
+Les ports déjà publiés par le même service sont reconnus. Un autre projet Docker utilisant le port demandé est signalé séparément. Cette situation ne bloque pas forcément le démarrage : il faut d'abord vérifier à quel service appartient le port. De même, certains montages autorisent Docker à créer automatiquement un dossier absent. Ces cas sont signalés comme des avertissements.
 
 Le seuil disque vaut 2 Gio par défaut ; `--min-free-gib 0` désactive ce contrôle.
 
@@ -43,7 +50,7 @@ Le code de sortie est `0` sans blocage confirmé, `1` en présence d'un blocage,
 
 ## Limites et confidentialité
 
-BeforeUp n'exécute pas `docker compose up`, ne crée pas de répertoires et ne supprime rien. Il ne promet pas qu'une application sera en bonne santé après démarrage. L'outil évite d'afficher les valeurs de configuration et les erreurs brutes de Compose, car elles peuvent contenir des données sensibles.
+BeforeUp n'exécute pas `docker compose up`, ne crée pas de répertoires et ne supprime rien. Il ne promet pas qu'une application sera en bonne santé après démarrage. L'outil n'affiche pas les chemins sources résolus des montages, les valeurs de configuration ni les erreurs brutes de Compose, car elles peuvent contenir des données sensibles.
 
 Pour un moteur Docker distant, les vérifications propres à la machine locale sont ignorées : exécute BeforeUp sur la machine cible.
 

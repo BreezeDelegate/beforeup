@@ -4,7 +4,9 @@ BeforeUp exists to find a few host-side problems before a Docker Compose project
 
 - Keep the command read-only. Do not execute `up`, `down`, `pull`, `build` or mutate the Docker daemon.
 - Do not print interpolated environment values or raw Docker Compose errors.
-- A busy port is a warning, not proof of failure; do not ignore inactive profiles.
+- A busy port is a warning, not proof of failure; attribute Docker port ownership and do not ignore inactive profiles.
+- The comparison feature must only read running state; do not imply unchanged app or image behavior from matching ports and mounts.
+- Never include interpolated bind-source paths or raw Compose error details in reports.
 - Remote contexts must skip local host checks.
 - Preserve both healthy and failing cases in tests.
 - Use concise, factual English. Keep README.fr.md aligned.
