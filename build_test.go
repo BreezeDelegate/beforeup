@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -52,5 +53,22 @@ func TestRemoteBuildContextDoesNotProbeLocalPath(t *testing.T) {
 	}
 	if hasID(r, "BUILD_CONTEXT_MISSING") {
 		t.Fatalf("remote build context falsely missing %+v", r)
+	}
+}
+
+func TestBuildContextMustBeDirectory(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "not-a-folder")
+	if err := os.WriteFile(path, []byte("hello"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	raw := "{\"name\":\"build-app\",\"services\":{\"api\":{\"build\":{\"context\":\"" + path + "\"}}}}"
+	h := fakeHost(raw)
+	h.Stat = os.Stat
+	r, err := inspect(context.Background(), Options{}, h)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !hasID(r, "BUILD_CONTEXT_INVALID") {
+		t.Fatalf("file accepted as local build context directory: %+v", r)
 	}
 }

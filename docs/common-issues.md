@@ -65,7 +65,7 @@ docker compose --dry-run up --build
 beforeup check -f compose.yaml
 ```
 
-The `BUILD_CONTEXT_MISSING` warning identifies a missing local build directory without printing its path. This is a warning rather than a guaranteed failure because deployments can sometimes reuse an existing image. Remote Git build contexts are not checked as local directories.
+The `BUILD_CONTEXT_MISSING` warning identifies a missing local build directory without printing its path. `BUILD_CONTEXT_INVALID` reports when the context exists but is a regular file rather than a directory. This is a warning rather than a guaranteed failure because deployments can sometimes reuse an existing image. Remote Git build contexts are not checked as local directories.
 
 ## "Rootless Docker cannot bind host port 80"
 

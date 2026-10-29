@@ -1,10 +1,12 @@
 # Project status
 
-## 29 October 2026
+## 30 October 2026
 
 BeforeUp is a public Linux-only preview. The baseline `check` command verifies Docker Compose configuration against selected local host conditions. The `compare` command reads active containers belonging to the same project and identifies changes in published ports, data mounts, declared container environment values and image references.
 
 ### Verified
+
+- Final quality review (0.4.3 preview): existing local build-context files, published-port finding order and failed Docker port-ownership lookups have regression coverage. A failed owner lookup no longer produces a green ports finding; warnings remain non-blocking without `--strict`.
 
 - User-scenario coverage (0.4.2 preview): six representative official Docker Compose files passed static analysis. A missing local build-context check was added after the multi-service NGINX/Node.js/Redis example reproduced the gap. A separate real disposable Compose service validated matching and changed environment/mount diagnostics without host-path disclosure. Rootless application container writes remain unverified because this VPS lacks the required AppArmor/cgroup delegation in its test session.
 

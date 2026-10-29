@@ -330,12 +330,22 @@ func comparison(ctx context.Context, h Host, model model, selected []string, env
 		}
 		desiredPorts := plannedPublished(planned)
 		oldPorts := runningPublished(existing)
+		proposedKeys := make([]string, 0, len(desiredPorts))
 		for key := range desiredPorts {
+			proposedKeys = append(proposedKeys, key)
+		}
+		sort.Strings(proposedKeys)
+		for _, key := range proposedKeys {
 			if !oldPorts[key] {
 				r.add("PORT_ADDED", "warning", name, "Proposed published port is not used by the running service: "+key, "Check existing listeners and update firewall or proxy configuration if necessary.")
 			}
 		}
+		runningKeys := make([]string, 0, len(oldPorts))
 		for key := range oldPorts {
+			runningKeys = append(runningKeys, key)
+		}
+		sort.Strings(runningKeys)
+		for _, key := range runningKeys {
 			if !desiredPorts[key] {
 				r.add("PORT_REMOVED", "warning", name, "Running service publishes a port absent from the proposal: "+key, "Check clients, reverse proxies and firewall rules before applying the change.")
 			}

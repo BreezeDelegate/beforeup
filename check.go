@@ -300,6 +300,7 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 		proto   string
 	}
 	var claims []claim
+	ownerLookupUnknown := false
 	rootlessPortChecked := false
 	rootlessPortThreshold := -1
 	for _, name := range services {
@@ -364,6 +365,9 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 			attributed := false
 			if daemonErr == nil {
 				owners, ownerErr := portOwners(ctx, h, n, protocol, p.HostIP)
+				if ownerErr != nil {
+					ownerLookupUnknown = true
+				}
 				if ownerErr == nil && len(owners) > 0 {
 					own := true
 					for _, owner := range owners {
@@ -391,10 +395,12 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 		// their source directories exist. An image can sometimes be reused,
 		// so a missing context is a warning rather than a certain blocker.
 		if contextPath := svc.Build.Context; contextPath != "" && !strings.Contains(contextPath, "://") && !strings.HasPrefix(contextPath, "git@") {
-			if _, err := h.Stat(filepath.Clean(contextPath)); os.IsNotExist(err) {
-				r.add("BUILD_CONTEXT_MISSING", "warning", name, "A local build context directory does not exist.", "Check the build.context path before running docker compose up --build. docker compose config does not verify local build directories.")
+			if info, err := h.Stat(filepath.Clean(contextPath)); os.IsNotExist(err) {
+				r.add("BUILD_CONTEXT_MISSING", "warning", name, "A local build context directory does not exist.", "Check build.context before running docker compose up --build.")
 			} else if err != nil {
-				r.add("BUILD_CONTEXT_UNKNOWN", "warning", name, "A local build context could not be inspected.", "Check the build.context path and local filesystem permissions.")
+				r.add("BUILD_CONTEXT_UNKNOWN", "warning", name, "A local build context could not be inspected.", "Check the build.context path and filesystem permissions.")
+			} else if info != nil && !info.IsDir() {
+				r.add("BUILD_CONTEXT_INVALID", "warning", name, "A local build context is not a directory.", "Use a directory for the local build.context setting.")
 			}
 		}
 		for _, v := range svc.Volumes {
@@ -420,10 +426,13 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 			}
 		}
 	}
+	if ownerLookupUnknown {
+		r.add("PORT_OWNERS_UNKNOWN", "warning", "", "Docker could not verify published-port ownership for one or more proposed ports.", "Check docker ps --filter publish=PORT and the Docker socket permissions. No claim of available ports is made.")
+	}
 	if rootlessBind {
 		r.add("ROOTLESS_BIND_UNVERIFIED", "warning", "", "Existing bind sources were found, but their accessibility through rootless UID/GID mappings was not verified.", "Check container user, subordinate UID/GID mappings and the target mount permissions. Host path existence alone cannot prove container write access.")
 	}
-	if tcpErr == nil && udpErr == nil && !hasID(r, "PORT_DUAL_STACK_UNCERTAIN") && !hasID(r, "PORT_IN_USE") && !hasID(r, "PORT_USED_BY_OTHER") && !hasID(r, "PORT_COLLISION") && !hasID(r, "PORT_BINDING_CHANGED") {
+	if tcpErr == nil && udpErr == nil && !hasID(r, "PORT_DUAL_STACK_UNCERTAIN") && !hasID(r, "PORT_IN_USE") && !hasID(r, "PORT_USED_BY_OTHER") && !hasID(r, "PORT_OWNERS_UNKNOWN") && !hasID(r, "PORT_COLLISION") && !hasID(r, "PORT_BINDING_CHANGED") {
 		r.add("PORTS", "pass", "", "No unexplained published-port conflicts detected.", "")
 	}
 	if o.MinFreeGiB > 0 && daemonErr == nil {

@@ -30,7 +30,7 @@ The `arm64` package was built with `GOARCH=arm64` and its Debian metadata inspec
 Reproduce the package install/remove check with an authorized local Docker Engine:
 
 ```sh
-sh tests/deb-smoke.sh path/to/beforeup_0.4.2.preview1_amd64.deb
+sh tests/deb-smoke.sh path/to/beforeup_0.4.3.preview1_amd64.deb
 ```
 
 The script creates and removes temporary, network-disabled containers. It does not mount the host Docker socket.

@@ -118,3 +118,12 @@ Six unmodified Compose files from [Docker Awesome Compose](https://github.com/do
 An additional disposable Alpine Compose service was actually started using a pre-cached image, no network, no public ports and a read-only root filesystem. BeforeUp `compare` reported `RUNNING_MATCH` for the original file. After changing an environment value and bind mount source, the same command reported `ENV_CHANGED` and `MOUNT_SOURCE_CHANGED`, without disclosing the private host path. The test project and resources were removed. Reproduce with `sh tests/live-compare-smoke.sh /path/to/beforeup` on an authorized host with `alpine:3.22` cached.
 
 A separate container write test on a disposable 0700, root-owned bind directory demonstrated that application UID 1000 cannot write while root can. This was tested with the regular Docker daemon, **not rootless**. An isolated rootless daemon was started and an Alpine image loaded, but starting its container failed due to missing AppArmor profile access, then cgroup delegation in the VPS session. The rootless daemon and temporary storage were removed. The result does not prove rootless container write behavior; the remaining gap is tracked privately. No host cgroup, AppArmor or production Docker configuration was changed.
+
+
+## Final quality audit (30 October 2026)
+
+A repository-wide review examined the Go read-only command path, Docker calls and output bounds, reporting, secrets handling, package scripts, test harnesses, documentation and version alignment. Existing `review_test.go` from an interrupted audit was retained as a regression rather than discarded.
+
+Three reproducible issues were closed. A local build context that was a regular file was previously treated as a valid directory; it now reports `BUILD_CONTEXT_INVALID`. The order of added/removed port findings was map-dependent; it is now deterministic. A failed Docker published-port ownership lookup with an empty host socket list previously yielded a `PORTS` pass; it now reports `PORT_OWNERS_UNKNOWN` without claiming availability. These findings are warnings because no deployment failure was proven.
+
+Quality verification includes formatting, unit and integration tests, race testing, static Go vet, a multi-scenario Docker Compose matrix, shell syntax checks and Debian package installation/removal. Public source checks remain read-only; no personal service config or secret data is committed. Linux Desktop, enforced SELinux, rootless application write access and real ARM64 installation remain outside this audit's evidence.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.3-preview.1
+
+- Report `BUILD_CONTEXT_INVALID` when a local build context is a regular file instead of a directory.
+- Sort added and removed published-port diagnostics for reproducible text and JSON results.
+- Report `PORT_OWNERS_UNKNOWN` instead of claiming ports are clear when Docker's ownership lookup fails.
+- Add regression tests and complete a repository-wide code, documentation, packaging and script audit.
+
+
 ## 0.4.2-preview.1
 
 - Warn about missing local Compose build contexts even when Docker Compose config validation succeeds; remote Git contexts are excluded.
@@ -45,7 +53,7 @@
 ## 0.3.1-preview.1
 
 - Detect when a local image tag points to a different image ID than the running container.
-- Add regression tests for unchanged tags, changed local images and unavailable local image IDs.
+- Cover unchanged tags, locally updated images and unavailable image IDs with regressions.
 - Update troubleshooting guidance for Compose image pulls and no-pull checks.
 
 ## 0.3.0-preview.1
