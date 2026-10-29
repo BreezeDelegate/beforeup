@@ -1,6 +1,6 @@
 # BeforeUp
 
-Check a Docker Compose project against the machine it will run on, before you start it.
+**Docker Compose preflight and deployment-change checks for Linux.** Find host port conflicts, missing bind mounts, changed environment settings and stale local images before changing a running stack.
 
 A Compose file can be valid while its host is not ready. The published port may already be in use, a required bind-mount path may be missing, or Docker may be inaccessible to the account running the deployment.
 
@@ -10,7 +10,7 @@ BeforeUp checks those conditions without starting containers. It relies on Docke
 
 ## Try it
 
-Requirements: Docker CLI with Compose v2, Linux, and `ss` (provided by `iproute2`). Docker Engine access is needed for all checks; when unavailable, BeforeUp reports that problem as well.
+Requirements: Docker CLI with Compose v2, Linux, and `ss` (from `iproute2`). Syntax validation works without Engine access; host and running-container checks require permission to access Docker. BeforeUp reports missing access instead of requesting privilege escalation.
 
 Build from source using Go 1.24 or newer:
 
@@ -40,18 +40,19 @@ Run it in a directory containing your Compose project, or provide `-f`. Repeated
 - an existing container's bind source or named volume would change;
 - a currently mounted data path would no longer be mounted;
 - a declared environment setting or image reference differs from the running container (without printing secret values);
+- a local image with the **same tag** is now different from the image used by the running container (when the image IDs can be inspected);
 - an existing running service is absent from the proposed resolved Compose model;
 - an intended service has no running counterpart.
 
 Use repeated `-f` options for overrides, just as you would with Docker Compose. This is read-only: it does not simulate a replacement, stop containers or create volumes.
 
-A matching report means only the **inspected port bindings, data mounts, declared environment settings and image reference** appear unchanged. It does not prove that the image digest, inherited environment, command, networks or application behavior are unchanged. Stopped services and Compose replicas do not currently have full comparison support. A missing baseline is reported explicitly, not treated as a healthy deployment.
+A matching report means only the **inspected port bindings, data mounts, declared environment settings and image reference** appear unchanged. It may also compare a locally available image ID. It does not prove that the remote registry image, inherited environment, command, networks or application behavior are unchanged. Stopped services and Compose replicas do not currently have full comparison support. A missing baseline is reported explicitly, not treated as a healthy deployment.
 
 ## What it checks
 
 | Finding | What it means |
 | --- | --- |
-| `COMPOSE` | Docker Compose could resolve the project's configuration |
+| `COMPOSE` | The Docker configuration was resolved successfully |
 | `DAEMON` | Docker Engine is reachable by the current account |
 | `PORT_IN_USE` | A requested TCP/UDP host port has an unassigned listener |
 | `PORT_OWNED_BY_SERVICE` | The running version of this service already owns its published port |
@@ -63,6 +64,7 @@ A matching report means only the **inspected port bindings, data mounts, declare
 | `CONTEXT` | A remote Docker endpoint prevents meaningful local host checks |
 | `ENV_CHANGED` | Declared container environment differs from running settings, with no values printed |
 | `IMAGE_REFERENCE_CHANGED` | Proposed image reference differs from running container reference |
+| `LOCAL_IMAGE_UPDATED` | A locally available image with the same tag now differs from the running container image |
 | `SERVICE_ABSENT_FROM_PROPOSAL` | Running service missing from proposed resolved model; may remain as an orphan |
 | `PORT_ADDED` / `PORT_REMOVED` | A proposed deployment changes a published host port |
 | `MOUNT_REMOVED` / `MOUNT_SOURCE_CHANGED` | A mounted data path or its source changes |
@@ -89,7 +91,7 @@ This optional test needs Python 3 and authorized local Docker Engine access. It 
 - `1`: at least one confirmed blocker.
 - `2`: configuration could not be inspected or the command was invalid.
 
-A warning is never silently promoted to a blocker. A passed check is not a guarantee of a successful deployment.
+A warning is never silently promoted to a blocker. A passed check is not a guarantee of a successful deployment. See [real troubleshooting examples](docs/common-issues.md) for cases where the native Docker commands already solve the problem.
 
 ## What it does not know
 

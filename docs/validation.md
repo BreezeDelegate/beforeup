@@ -63,3 +63,9 @@ Stack Overflow questions about environment values not updating after `docker com
 For the environment-change case, new Go tests compare only environment settings explicitly present in the proposed resolved Compose model against running container values. Extra variables inherited from an image are not treated as configuration changes. Sensitive names and values are withheld from diagnostics. Other tests cover changed image references, failed metadata inspection and services that no longer appear in the proposal.
 
 The change was exercised in read-only mode against two running Compose projects on the maintainer VPS. This is not independent field validation. No replies or promotional posts were made in community discussions.
+
+## Same-tag local image updates (29 October 2026)
+
+Questions about `docker compose pull`, unchanged image tags and whether `docker compose up` recreates a container led to a targeted read-only check. BeforeUp now compares the image ID used by the running container against the ID of the image currently available **locally** for that tag. It reports `LOCAL_IMAGE_UPDATED` only when both IDs are valid and different. If the image is unavailable locally, the check makes no claim. Services pinned to another platform are excluded from this comparison until platform-sensitive checks are supported. The check makes no remote registry request.
+
+The regression was reproduced before the change and passes after it. It includes a case with matching local IDs and one where the local image cannot be inspected. No image was pulled and no container was recreated.

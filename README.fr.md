@@ -1,6 +1,6 @@
 # BeforeUp
 
-Vérifier qu'un projet Docker Compose a des chances de démarrer sur la machine, avant de le lancer.
+Contrôler un projet Docker Compose avant son démarrage ou son redéploiement : ports, montages, variables d’environnement et images locales.
 
 Un fichier Compose peut être valide alors qu'un port est déjà utilisé, qu'un dossier indispensable manque ou que le compte courant n'a pas accès au moteur Docker. BeforeUp examine ces problèmes sans démarrer de conteneur. Il laisse Docker Compose interpréter la configuration.
 

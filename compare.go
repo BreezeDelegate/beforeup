@@ -104,6 +104,24 @@ func readRuntimeMetadata(ctx context.Context, h Host, id string) (string, map[st
 	}
 	return image, env, nil
 }
+
+// A locally updated tag can point to another image than a running container.
+// This does not query the registry or pull an image. Unknown results stay unknown.
+func localImageUpdated(ctx context.Context, h Host, containerID, reference string) bool {
+	if !checkedID(containerID) || reference == "" {
+		return false
+	}
+	running, err := h.Run(ctx, "docker", "inspect", "--format", "{{.Image}}", containerID)
+	if err != nil {
+		return false
+	}
+	local, err := h.Run(ctx, "docker", "image", "inspect", "--format", "{{.Id}}", reference)
+	if err != nil {
+		return false
+	}
+	a, b := strings.TrimSpace(string(running)), strings.TrimSpace(string(local))
+	return strings.HasPrefix(a, "sha256:") && strings.HasPrefix(b, "sha256:") && len(a) == 71 && len(b) == 71 && a != b
+}
 func parseOwners(raw []byte) ([]struct{ id, project, service string }, error) {
 	var out []struct{ id, project, service string }
 	lines := strings.Split(strings.TrimSpace(string(raw)), "\n")
@@ -276,6 +294,8 @@ func comparison(ctx context.Context, h Host, model model, selected []string, env
 			} else {
 				if planned.Image != "" && planned.Image != image {
 					r.add("IMAGE_REFERENCE_CHANGED", "warning", name, "The proposed image reference differs from the running container.", "Verify the image and plan for potential container recreation; this does not check image digests.")
+				} else if planned.Image != "" && planned.Platform == "" && localImageUpdated(ctx, h, existing.ID, planned.Image) {
+					r.add("LOCAL_IMAGE_UPDATED", "warning", name, "The local image for this tag differs from the image used by the running container.", "A newer image is present locally. Review the deployment before recreating the container; this check does not query the registry.")
 				}
 				changes := 0
 				for key, want := range planned.Environment {
@@ -338,7 +358,7 @@ func comparison(ctx context.Context, h Host, model model, selected []string, env
 			r.add("SERVICE_ABSENT_FROM_PROPOSAL", "warning", serviceName, "A running service is absent from the proposed Compose model.", "It may remain as an orphan unless you explicitly remove it. Review the deployment plan without deleting containers blindly.")
 		}
 	}
-	if compared > 0 && !hasID(*r, "ENV_CHANGED") && !hasID(*r, "IMAGE_REFERENCE_CHANGED") && !hasID(*r, "RUNTIME_METADATA_UNKNOWN") && !hasID(*r, "SERVICE_ABSENT_FROM_PROPOSAL") && !hasID(*r, "PORT_ADDED") && !hasID(*r, "PORT_REMOVED") && !hasID(*r, "MOUNT_REMOVED") && !hasID(*r, "MOUNT_SOURCE_CHANGED") && !hasID(*r, "SERVICE_NEW") {
+	if compared > 0 && !hasID(*r, "ENV_CHANGED") && !hasID(*r, "IMAGE_REFERENCE_CHANGED") && !hasID(*r, "LOCAL_IMAGE_UPDATED") && !hasID(*r, "RUNTIME_METADATA_UNKNOWN") && !hasID(*r, "SERVICE_ABSENT_FROM_PROPOSAL") && !hasID(*r, "PORT_ADDED") && !hasID(*r, "PORT_REMOVED") && !hasID(*r, "MOUNT_REMOVED") && !hasID(*r, "MOUNT_SOURCE_CHANGED") && !hasID(*r, "SERVICE_NEW") {
 		r.add("RUNNING_MATCH", "pass", "", "No changes were detected in the inspected ports, mounts, declared environment or image references.", "Image digests, application health and other runtime settings are not analyzed.")
 	}
 }

@@ -21,6 +21,11 @@
 - Warn about changed image references and running services missing from the proposal.
 - Link practical troubleshooting to documented user questions, including where native Docker commands are sufficient.
 
+## 0.3.1 preview
+
+- Identify locally updated image IDs even when the image tag stays unchanged.
+- Link troubleshooting information to the related Docker questions and native fixes.
+
 ## Before a stable release
 
 - Validate against additional real Compose projects from users outside the maintainer's infrastructure.

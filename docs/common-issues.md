@@ -51,13 +51,15 @@ See [a PostgreSQL bind-mount example](https://stackoverflow.com/questions/472146
 beforeup compare -f compose.yaml
 ```
 
-BeforeUp detects a difference in **declared image reference**, not remote digest changes. Use Docker's native pull and deployment tools to verify what is available and how the container should be recreated. BeforeUp does not pull images or predict container health.
+BeforeUp detects changed image references and, when both image IDs can be read, whether the **locally available image for the same tag** differs from the image used by the running container (`LOCAL_IMAGE_UPDATED`). This requires no registry request. It cannot tell whether a registry has published a newer image that has not been pulled. Check with `docker compose pull` if updating the image is appropriate, then review `docker compose up -d`. Do not remove the live container merely to force an update; plan downtime and backups where needed.
+
+See [a longstanding question about updating images without changing tags](https://stackoverflow.com/questions/37685581/how-to-get-docker-compose-to-use-the-latest-image-from-the-repository), [a more specific Compose question](https://stackoverflow.com/questions/73429215/force-docker-compose-to-pull-latest-image-for-a-container) and [the Compose up documentation](https://docs.docker.com/reference/cli/docker/compose/up/).
 
 ## What BeforeUp intentionally does not answer
 
 - Whether the application is healthy after startup.
 - Container write permissions inside a bind mount (UID/GID, user namespaces and ACLs matter).
-- Image digest changes when the tag stays the same.
+- Whether an image in the remote registry has changed since the last pull.
 - Compatibility of stopped containers and scaled Compose services with the new configuration.
 - Whether external load balancers, databases and clients will tolerate a change.
 

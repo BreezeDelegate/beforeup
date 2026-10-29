@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1-preview.1
+
+- Detect when a local image tag points to a different image ID than the running container.
+- Add regression tests for unchanged tags, changed local images and unavailable local image IDs.
+- Update troubleshooting guidance for Compose image pulls and no-pull checks.
+
 ## 0.3.0-preview.1
 
 - Compare declared environment settings against running container values without printing names or secrets.
@@ -17,8 +23,6 @@
 - Suppress potentially sensitive resolved bind-source paths in diagnostic reports.
 - Treat projects with no selected active profiles as a valid, empty selection.
 - Validate host-side diagnosis on synthetic fixtures and running projects without changing services.
-
-# Changelog
 
 ## 0.1.0 (preview)
 
