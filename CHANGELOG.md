@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.1-preview.1
+
+- Keep unrelated running-service comparisons when a scaled service is present, including orphaned replicas.
+- Avoid needless Docker inspections for services with multiple running containers.
+- Prevent mount target paths from appearing in reports, and summarize mount changes by service.
+- Keep orphan findings in deterministic order for stable machine-readable output.
+- Make `make check` non-mutating and keep the roadmap focused on unfinished work.
+
+
 ## 0.4.0-preview.1
 
 - Skip workstation-side socket, filesystem and disk probes when Docker Desktop for Linux uses a VM.

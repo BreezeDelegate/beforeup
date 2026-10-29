@@ -212,27 +212,32 @@ func projectContainers(ctx context.Context, h Host, project string) (map[string]
 	if len(lines) > 64 {
 		return nil, nil, errors.New("too many containers for a safe comparison")
 	}
+	ids := map[string]string{}
 	for _, line := range lines {
-		p := strings.Split(line, "|")
-		if len(p) != 2 || !checkedID(p[0]) {
+		fields := strings.Split(line, "|")
+		if len(fields) != 2 || !checkedID(fields[0]) {
 			return nil, nil, errors.New("invalid running container listing")
 		}
-		service := safeLabel(p[1])
-		if scaled[service] {
-			continue
-		}
-		if _, duplicate := current[service]; duplicate {
-			delete(current, service)
+		service := safeLabel(fields[1])
+		if _, duplicate := ids[service]; duplicate {
 			scaled[service] = true
 			continue
 		}
-		c, err := readContainer(ctx, h, p[0])
+		ids[service] = fields[0]
+	}
+	// Only inspect services with a single running container. This avoids both
+	// needless Docker work and opaque whole-stack failures on scaled services.
+	for service, id := range ids {
+		if scaled[service] {
+			continue
+		}
+		c, err := readContainer(ctx, h, id)
 		if err != nil {
 			return nil, nil, err
 		}
 		c.Service = service
 		c.Project = project
-		c.ID = p[0]
+		c.ID = id
 		current[service] = c
 	}
 	return current, scaled, nil
@@ -353,19 +358,40 @@ func comparison(ctx context.Context, h Host, model model, selected []string, env
 				plannedMounts[v.Target] = struct{ Kind, Source string }{v.Type, source}
 			}
 		}
+		removedMounts, changedMounts := 0, 0
 		for target, prev := range oldMounts {
 			want, ok := plannedMounts[target]
 			if !ok {
-				r.add("MOUNT_REMOVED", "warning", name, "A running data mount is absent from the proposed service at "+target+".", "The existing data may remain on disk, but the new container may no longer see it. Check the migration plan.")
+				removedMounts++
 				continue
 			}
 			if want.Kind != prev.Type || (prev.Type == "bind" && want.Source != prev.Source) || (prev.Type == "volume" && prev.Name != "" && want.Source != "" && want.Source != prev.Name) {
-				r.add("MOUNT_SOURCE_CHANGED", "warning", name, "The proposed data source changes at "+target+".", "Check where existing data lives and verify a safe migration before redeploying.")
+				changedMounts++
 			}
 		}
+		if removedMounts > 0 {
+			r.add("MOUNT_REMOVED", "warning", name, fmt.Sprintf("%d running data mount(s) are absent from the proposed service.", removedMounts), "Existing data may remain on disk, but the new container may no longer see it. Inspect mount targets locally and check the migration plan.")
+		}
+		if changedMounts > 0 {
+			r.add("MOUNT_SOURCE_CHANGED", "warning", name, fmt.Sprintf("%d proposed data mount source(s) differ from the running service.", changedMounts), "Check mount targets and sources locally and verify a safe migration before redeploying.")
+		}
 	}
+	orphanNames := make([]string, 0)
 	for serviceName := range live {
 		if _, exists := model.Services[serviceName]; !exists {
+			orphanNames = append(orphanNames, serviceName)
+		}
+	}
+	for serviceName := range scaled {
+		if _, exists := model.Services[serviceName]; !exists {
+			orphanNames = append(orphanNames, serviceName)
+		}
+	}
+	sort.Strings(orphanNames)
+	for _, serviceName := range orphanNames {
+		if scaled[serviceName] {
+			r.add("SERVICE_ABSENT_FROM_PROPOSAL", "warning", serviceName, "Multiple running containers belong to a service absent from the proposed Compose model.", "These replicas may remain as orphans unless intentionally removed. Review each container before changing the stack.")
+		} else {
 			r.add("SERVICE_ABSENT_FROM_PROPOSAL", "warning", serviceName, "A running service is absent from the proposed Compose model.", "It may remain as an orphan unless you explicitly remove it. Review the deployment plan without deleting containers blindly.")
 		}
 	}

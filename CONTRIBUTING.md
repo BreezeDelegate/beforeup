@@ -9,9 +9,8 @@ Changes should stay focused. Include tests for the successful case and a realist
 Run locally on Linux:
 
 ```sh
-go test ./...
-go vet ./...
-go build .
+make check
+go build -trimpath -o beforeup .
 ```
 
 To run the opt-in Compose CLI integration test:
@@ -20,7 +19,7 @@ To run the opt-in Compose CLI integration test:
 BEFOREUP_INTEGRATION=1 go test ./...
 ```
 
-The integration test resolves a temporary Compose project but does not start containers.
+The integration test resolves a temporary Compose project but does not start containers. `make check` verifies formatting without editing source files; `make fmt` applies formatting intentionally.
 
 Use the existing Go standard library when practical. Don't add container-management features, a daemon or a second Compose parser without an explicit need.
 

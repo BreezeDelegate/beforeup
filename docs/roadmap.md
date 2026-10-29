@@ -1,54 +1,22 @@
 # Roadmap
 
-## v0.1
-
-- Linux-only CLI that delegates Compose resolution to Docker.
-- Check occupied published ports, duplicated host port bindings, missing local bind sources, Docker Engine access and disk headroom.
-- Preserve Compose profiles, support repeated Compose files and environment files.
-- Text and machine-readable JSON; useful exit codes.
-- No automatic changes to the host.
-
-## v0.2 preview
-
-- Identify owners of published Docker ports instead of treating every live binding as an unexplained conflict.
-- Compare running Compose services with proposed host port and data-mount configurations.
-- Distinguish named Docker volumes from changed data sources.
-- Confirm behavior with a 16-case read-only synthetic validation matrix.
-
-## v0.3 preview
-
-- Detect differences in explicitly declared environment values without displaying credentials.
-- Warn about changed image references and running services missing from the proposal.
-- Link practical troubleshooting to documented user questions, including where native Docker commands are sufficient.
-
-**0.3.1 preview**
-
-- Identify locally updated image IDs even when the image tag stays unchanged.
-- Link troubleshooting information to the related Docker questions and native fixes.
-
-## 0.3.2 preview
-
-- Distribute native Debian packages alongside static archives without requiring an installer script.
-- Validate package install/remove in isolated Debian and Ubuntu containers.
-- Track ten Linux distribution binary smoke tests separately from full Docker integration support.
-
-## 0.4 preview
-
-- Detect Docker Desktop Linux as VM-backed and skip misleading workstation host checks.
-- Explain rootless bind UID/GID uncertainty and low-port limitations with cautious warnings.
-- Avoid treating IPv4/IPv6 wildcard ambiguity as a confirmed port collision.
-- Add optional strict CI exit codes without changing the report's finding severities.
-- Validate IPv6 listeners, Compose dry-run comparisons and CI warnings on the maintainer host.
-- Smoke-test a separate real rootless Engine for safe metadata and bind-source warnings without starting application containers.
+BeforeUp stays a small, read-only Docker Compose preflight CLI. Completed work belongs in [CHANGELOG.md](../CHANGELOG.md); this file tracks open decisions only.
 
 ## Before a stable release
 
-- Validate against additional real Compose projects from users outside the maintainer's infrastructure.
-- Test rootless engines, dual-stack IPv4/IPv6 and network namespaces.
-- Identify recurring false positives and either fix them or narrow the advertised scope.
-- Provide verified reproducible builds for supported CPU architectures.
+- Test rootless bind-mount write access with real unprivileged container IDs, including a negative permissions case.
+- Verify Docker Desktop for Linux and SELinux-enforcing hosts independently, or document those configurations as unsupported.
+- Validate IPv4/IPv6 wildcard and port-ownership behavior on additional real network configurations.
+- Get independent user feedback on false positives and whether each BeforeUp diagnostic offers value beyond native Docker commands.
+- Verify ARM64 package installation on real ARM64 hardware before claiming it fully supported.
 
-## Not on the current roadmap
+## Release discipline
 
-- Automatic fixes, container cleanup, secret scanning, cloud dashboards, agents, subscriptions or a Compose replacement.
-- A success guarantee for deployments. Application health remains outside this tool's scope.
+- Reproduce a real user problem before adding a check; prefer an explicit unknown result to a confident guess.
+- Test both success and failure cases, including secret redaction and read-only behavior.
+- Build and verify release checksums on files downloaded from GitHub, not only local artifacts.
+- Keep tarball and Debian package distribution while they remain useful and tested. Add other formats only when user demand and a real installation test justify them.
+
+## Outside the current scope
+
+Automatic fixes, container cleanup, secret scanning, cloud dashboards, agents, telemetry, subscriptions and a replacement Compose implementation. Application health and guaranteed deployment success are not promises BeforeUp makes.

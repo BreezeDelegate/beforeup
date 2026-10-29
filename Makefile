@@ -1,11 +1,14 @@
 GO ?= go
 
-.PHONY: check test build
+.PHONY: check fmt test build
 
 check:
-	$(GO) fmt ./...
+	@unformatted="$$(gofmt -l *.go)"; if [ -n "$$unformatted" ]; then printf 'Go files need gofmt:\n%s\n' "$$unformatted"; exit 1; fi
 	$(GO) vet ./...
 	$(GO) test ./...
+
+fmt:
+	gofmt -w *.go
 
 test:
 	$(GO) test ./...
