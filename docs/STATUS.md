@@ -6,6 +6,8 @@ BeforeUp is a public Linux-only preview. The baseline `check` command verifies D
 
 ### Verified
 
+- A disposable Docker integration test with two worker replicas and an independent API container confirmed `REPLICAS_UNSUPPORTED` without hiding the remaining service or claiming a full match. The test containers were removed immediately after validation.
+
 - Linux/amd64 static binary version smoke passed on ten isolated distribution images. Debian/Ubuntu `.deb` amd64 package install, version command and removal passed in Debian 13, Ubuntu 24.04 and 26.04. ARM64 packaging was built but was not installed on an ARM64 host. See [platform matrix](platform-support.md).
 
 - Added regression coverage for locally updated images with unchanged tags. The check compares only Docker image IDs already available on the host, without fetching from the registry.
@@ -23,7 +25,7 @@ BeforeUp is a public Linux-only preview. The baseline `check` command verifies D
 
 - Only Linux is supported. Remote Docker contexts do not get local host checks.
 - Compare checks port bindings, data mounts, declared environment values and image references; it does not check remote registry digests, health, inherited environment settings, resource reservations or network topology.
-- Multiple replicas of one Compose service are not yet comparable. No baseline is reported as unknown, never as healthy.
+- Multiple replicas of one Compose service receive an explicit `REPLICAS_UNSUPPORTED` warning; unrelated services are still checked. No baseline is reported as unknown, never as healthy.
 - Rootless Docker, IPv6 dual-stack and multiple network namespaces need additional independent coverage.
 - No users outside the maintainer infrastructure have evaluated the program yet. No unsolicited promotional replies were posted; Stack Overflow discussions used as source cases were already answered. No success or GitHub popularity can be inferred from internal tests.
 

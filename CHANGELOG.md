@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.3-preview.1
+
+- Keep comparing unrelated services when a Compose service has multiple running replicas.
+- Report the skipped service explicitly instead of returning an opaque project-wide unknown.
+- Add an isolated real-Docker integration test for replicas and a second running service.
+
+
 ## 0.3.2-preview.2
 
 - Use GitHub-compatible Debian package filenames so downloaded SHA-256 manifests verify correctly.

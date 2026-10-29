@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/readme-banner.webp" alt="BeforeUp — Docker Compose preflight and deployment-change checks" width="960" />
+  <img src="assets/readme-banner.webp" alt="BeforeUp — Docker Compose preflight and deployment-change checks" width="800" />
 </p>
 
 # BeforeUp
@@ -27,7 +27,7 @@ go build -o beforeup .
 
 Or use the Linux executable and SHA-256 checksum attached to a [release](https://github.com/BreezeDelegate/beforeup/releases). Check the checksum before running a downloaded executable.
 
-For Debian and Ubuntu, a native `.deb` package is also available in the 0.3.2 preview release. See [installation instructions](docs/install.md) and the [compatibility matrix](docs/platform-support.md).
+For Debian and Ubuntu, a native `.deb` package is also available starting with the 0.3.2 preview release. See [installation instructions](docs/install.md) and the [compatibility matrix](docs/platform-support.md).
 
 ```sh
 beforeup check
@@ -52,7 +52,7 @@ Run it in a directory containing your Compose project, or provide `-f`. Repeated
 
 Use repeated `-f` options for overrides, just as you would with Docker Compose. This is read-only: it does not simulate a replacement, stop containers or create volumes.
 
-A matching report means only the **inspected port bindings, data mounts, declared environment settings and image reference** appear unchanged. It may also compare a locally available image ID. It does not prove that the remote registry image, inherited environment, command, networks or application behavior are unchanged. Stopped services and Compose replicas do not currently have full comparison support. A missing baseline is reported explicitly, not treated as a healthy deployment.
+A matching report means only the **inspected port bindings, data mounts, declared environment settings and image reference** appear unchanged. It may also compare a locally available image ID. It does not prove that the remote registry image, inherited environment, command, networks or application behavior are unchanged. Stopped services do not have a reliable running baseline. When a service has multiple running replicas, BeforeUp reports `REPLICAS_UNSUPPORTED` for that service while still checking unrelated services; it does not claim the whole stack is unchanged. A missing baseline is reported explicitly, never treated as healthy.
 
 ## What it checks
 

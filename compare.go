@@ -198,38 +198,44 @@ func portOwners(ctx context.Context, h Host, port int, protocol, ip string) ([]o
 	}
 	return owners, nil
 }
-func projectContainers(ctx context.Context, h Host, project string) (map[string]runningContainer, error) {
+func projectContainers(ctx context.Context, h Host, project string) (map[string]runningContainer, map[string]bool, error) {
 	raw, err := h.Run(ctx, "docker", "ps", "--filter", "label=com.docker.compose.project="+project, "--format", `{{.ID}}|{{.Label "com.docker.compose.service"}}`)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	current := map[string]runningContainer{}
+	scaled := map[string]bool{}
 	lines := strings.Split(strings.TrimSpace(string(raw)), "\n")
 	if len(lines) == 1 && lines[0] == "" {
-		return current, nil
+		return current, scaled, nil
 	}
 	if len(lines) > 64 {
-		return nil, errors.New("too many containers for a safe comparison")
+		return nil, nil, errors.New("too many containers for a safe comparison")
 	}
 	for _, line := range lines {
 		p := strings.Split(line, "|")
 		if len(p) != 2 || !checkedID(p[0]) {
-			return nil, errors.New("invalid running container listing")
+			return nil, nil, errors.New("invalid running container listing")
 		}
 		service := safeLabel(p[1])
+		if scaled[service] {
+			continue
+		}
+		if _, duplicate := current[service]; duplicate {
+			delete(current, service)
+			scaled[service] = true
+			continue
+		}
 		c, err := readContainer(ctx, h, p[0])
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		c.Service = service
 		c.Project = project
 		c.ID = p[0]
-		if _, duplicate := current[service]; duplicate {
-			return nil, errors.New("multiple running containers for the same service are not yet supported")
-		}
 		current[service] = c
 	}
-	return current, nil
+	return current, scaled, nil
 }
 func plannedPublished(s service) map[string]bool {
 	out := map[string]bool{}
@@ -261,15 +267,16 @@ func runningPublished(c runningContainer) map[string]bool {
 	return out
 }
 func comparison(ctx context.Context, h Host, model model, selected []string, envProfiles string, r *Report) {
-	live, err := projectContainers(ctx, h, model.Name)
+	live, scaled, err := projectContainers(ctx, h, model.Name)
 	if err != nil {
 		r.add("BASELINE_UNKNOWN", "warning", "", "Running Compose service state could not be inspected.", "Check Docker access and try again; no comparison is claimed.")
 		return
 	}
-	if len(live) == 0 {
+	if len(live) == 0 && len(scaled) == 0 {
 		r.add("NO_RUNNING_STACK", "warning", "", "No running containers were found for this Compose project.", "Only host preflight checks are available before the first deployment.")
 		return
 	}
+
 	names := make([]string, 0, len(model.Services))
 	for name := range model.Services {
 		names = append(names, name)
@@ -279,6 +286,10 @@ func comparison(ctx context.Context, h Host, model model, selected []string, env
 	for _, name := range names {
 		planned := model.Services[name]
 		if !profileEnabled(planned.Profiles, selected, envProfiles) {
+			continue
+		}
+		if scaled[name] {
+			r.add("REPLICAS_UNSUPPORTED", "warning", name, "Multiple running containers exist for this service; a reliable comparison is not available.", "Inspect each replica with Docker before changing this service. Other services are still checked.")
 			continue
 		}
 		existing, ok := live[name]
@@ -358,7 +369,7 @@ func comparison(ctx context.Context, h Host, model model, selected []string, env
 			r.add("SERVICE_ABSENT_FROM_PROPOSAL", "warning", serviceName, "A running service is absent from the proposed Compose model.", "It may remain as an orphan unless you explicitly remove it. Review the deployment plan without deleting containers blindly.")
 		}
 	}
-	if compared > 0 && !hasID(*r, "ENV_CHANGED") && !hasID(*r, "IMAGE_REFERENCE_CHANGED") && !hasID(*r, "LOCAL_IMAGE_UPDATED") && !hasID(*r, "RUNTIME_METADATA_UNKNOWN") && !hasID(*r, "SERVICE_ABSENT_FROM_PROPOSAL") && !hasID(*r, "PORT_ADDED") && !hasID(*r, "PORT_REMOVED") && !hasID(*r, "MOUNT_REMOVED") && !hasID(*r, "MOUNT_SOURCE_CHANGED") && !hasID(*r, "SERVICE_NEW") {
+	if compared > 0 && len(scaled) == 0 && !hasID(*r, "ENV_CHANGED") && !hasID(*r, "IMAGE_REFERENCE_CHANGED") && !hasID(*r, "LOCAL_IMAGE_UPDATED") && !hasID(*r, "RUNTIME_METADATA_UNKNOWN") && !hasID(*r, "SERVICE_ABSENT_FROM_PROPOSAL") && !hasID(*r, "PORT_ADDED") && !hasID(*r, "PORT_REMOVED") && !hasID(*r, "MOUNT_REMOVED") && !hasID(*r, "MOUNT_SOURCE_CHANGED") && !hasID(*r, "SERVICE_NEW") {
 		r.add("RUNNING_MATCH", "pass", "", "No changes were detected in the inspected ports, mounts, declared environment or image references.", "Image digests, application health and other runtime settings are not analyzed.")
 	}
 }

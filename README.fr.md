@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/readme-banner.webp" alt="BeforeUp — contrôles Docker Compose avant déploiement" width="960" />
+  <img src="assets/readme-banner.webp" alt="BeforeUp — contrôles Docker Compose avant déploiement" width="800" />
 </p>
 
 # BeforeUp
@@ -36,7 +36,7 @@ Les options `-f`, `--profile` et `--env-file` peuvent être répétées.
 
 `beforeup compare -f compose.yaml` examine les conteneurs **encore actifs** du même projet. Il signale les ports ajoutés ou retirés, les changements de montages, ainsi que les différences de valeurs d’environnement et de références d’images par rapport aux conteneurs actifs, sans exposer les valeurs sensibles.
 
-La comparaison reste partielle : elle n'analyse ni les changements d'image, ni les variables d'environnement, ni le comportement de l'application. Si les conteneurs ne sont pas accessibles, elle ne prétend pas disposer d'une référence. Rien n'est redémarré ou modifié.
+La comparaison reste partielle : elle vérifie les références d'images et les variables déclarées, mais ne prédit pas le comportement de l'application. Si les conteneurs ne sont pas accessibles, elle ne prétend pas disposer d'une référence. Lorsqu'un service comporte plusieurs répliques, BeforeUp le signale et continue d'analyser les autres services. Rien n'est redémarré ou modifié.
 
 ## Ce qui est vérifié
 

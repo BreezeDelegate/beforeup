@@ -77,3 +77,9 @@ A static Linux/amd64 binary executed `beforeup version` successfully in ten isol
 A Debian package was built for amd64 and arm64. The amd64 package installed, ran and was removed without leftover executable on Debian 13 and Ubuntu 24.04/26.04. The arm64 package passed archive metadata inspection; ARM runtime testing remains pending. See [platform support](platform-support.md).
 
 The first 0.3.2 preview release exposed a packaging-manifest mismatch: GitHub sanitized the tilde in uploaded `.deb` asset filenames, but the checksum file still referenced the original tilde. The release check reproduced the failure. Package build output now uses GitHub-compatible period filenames while retaining the correct `~preview` version inside Debian control metadata; the release assets and checksum list are verified after downloading.
+
+## Multiple running replicas (29 October 2026)
+
+Before this change, an additional running container belonging to a Compose service caused the entire running-stack comparison to return `BASELINE_UNKNOWN`. A regression test first reproduced this behavior. The fix reports `REPLICAS_UNSUPPORTED` for that service and continues to compare other services. It never returns a project-wide `RUNNING_MATCH` when any replica is skipped.
+
+The behavior was exercised using three disposable containers on the maintainer's Debian VPS: two isolated `worker` replicas and one independent `api` container with synthetic Compose labels. They ran without host networking, published ports or writable root filesystems, under limited CPU and memory. The test containers were removed afterwards. This validates partial comparison behavior; BeforeUp still cannot fully compare replica configurations.
