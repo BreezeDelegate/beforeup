@@ -26,6 +26,8 @@ Two services publishing the same host port were also accepted by Compose configu
 
 A deliberately high disk threshold also triggered `DISK_LOW`. This validates the warning branch; it is not evidence that the VPS was short of disk space.
 
+Two existing Compose projects on the same host were also inspected without launching or changing their services. Both produced only the expected busy-port warnings and no confirmed blockers. This is a local compatibility check, not independent field validation.
+
 ## Checks run for the prototype
 
 - Go unit tests with fake command execution, socket outputs, Docker contexts and filesystem state.
