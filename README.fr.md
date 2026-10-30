@@ -10,7 +10,7 @@ Un fichier Compose peut être valide alors qu'un port est déjà utilisé, qu'un
 
 **Linux uniquement.** La version 0.4.3 est la première version stable pour les hôtes Linux Docker Engine natifs pris en charge. Un diagnostic favorable ne garantit pas un déploiement réussi.
 
-**Voir BeforeUp en action :** [démonstration de 23 secondes](assets/demo-preflight.mp4) ([GIF](assets/demo-preflight.gif), [aperçu PNG](assets/demo-preflight.png)). Elle reprend les résultats réels obtenus sur un projet Compose Linux isolé.
+**Voir BeforeUp en action :** [démonstration terminal de 18 secondes](assets/demo-preflight.mp4) ([GIF](assets/demo-preflight.gif), [aperçu PNG](assets/demo-preflight.png)). Elle reprend les résultats réels obtenus sur un projet Compose Linux isolé.
 
 ## Installation
 

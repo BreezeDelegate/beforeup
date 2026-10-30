@@ -12,7 +12,7 @@ BeforeUp checks those conditions without starting containers. It also warns when
 
 **Linux only.** BeforeUp 0.4.3 is the first stable release for supported native Linux Docker Engine setups. This is a read-only diagnostic, not a guarantee that deployment will succeed. Review the [limitations](#what-it-does-not-know) before using it in automation.
 
-**See BeforeUp in action:** [23-second demo](assets/demo-preflight.mp4) ([GIF](assets/demo-preflight.gif), [PNG preview](assets/demo-preflight.png)). The demonstration replays real results from an isolated Linux Compose fixture.
+**See BeforeUp in action:** [18-second terminal demo](assets/demo-preflight.mp4) ([GIF](assets/demo-preflight.gif), [PNG preview](assets/demo-preflight.png)). The demonstration replays real results from an isolated Linux Compose fixture.
 
 ## Try it
 
