@@ -10,6 +10,8 @@ Un fichier Compose peut être valide alors qu'un port est déjà utilisé, qu'un
 
 **Linux uniquement.** La version 0.4.3 est la première version stable pour les hôtes Linux Docker Engine natifs pris en charge. Un diagnostic favorable ne garantit pas un déploiement réussi.
 
+**Voir BeforeUp en action :** [démonstration de 23 secondes](assets/demo-preflight.mp4) ([GIF](assets/demo-preflight.gif), [aperçu PNG](assets/demo-preflight.png)). Elle reprend les résultats réels obtenus sur un projet Compose Linux isolé.
+
 ## Installation
 
 Prérequis : Linux, CLI Docker avec Compose v2 et `ss` (paquet `iproute2`). Pour Debian/Ubuntu amd64, télécharger `beforeup_0.4.3_amd64.deb` depuis la [release v0.4.3](https://github.com/BreezeDelegate/beforeup/releases/tag/v0.4.3), vérifier son SHA-256 avec `SHA256SUMS`, puis :
