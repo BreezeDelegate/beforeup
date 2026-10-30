@@ -8,11 +8,19 @@ Contrôler un projet Docker Compose avant son démarrage ou son redéploiement :
 
 Un fichier Compose peut être valide alors qu'un port est déjà utilisé, qu'un dossier indispensable manque ou que le compte courant n'a pas accès au moteur Docker. BeforeUp examine ces problèmes sans démarrer de conteneur. Il laisse Docker Compose interpréter la configuration.
 
-**Linux uniquement pour le moment.** Le projet est encore jeune, et un diagnostic favorable ne garantit pas un déploiement réussi.
+**Linux uniquement.** La version 0.4.3 est la première version stable pour les hôtes Linux Docker Engine natifs pris en charge. Un diagnostic favorable ne garantit pas un déploiement réussi.
 
 ## Installation
 
-Il faut le CLI Docker avec Compose v2, Linux, `ss` (paquet `iproute2`) et Go 1.24+ pour compiler depuis les sources.
+Prérequis : Linux, CLI Docker avec Compose v2 et `ss` (paquet `iproute2`). Pour Debian/Ubuntu amd64, télécharger `beforeup_0.4.3_amd64.deb` depuis la [release v0.4.3](https://github.com/BreezeDelegate/beforeup/releases/tag/v0.4.3), vérifier son SHA-256 avec `SHA256SUMS`, puis :
+
+```sh
+sha256sum -c SHA256SUMS --ignore-missing
+sudo apt install ./beforeup_0.4.3_amd64.deb
+beforeup check -f compose.yaml
+```
+
+Les archives exécutables Linux amd64/arm64 sont aussi disponibles dans les [releases](https://github.com/BreezeDelegate/beforeup/releases). Pour compiler depuis les sources, il faut Go 1.24 ou plus :
 
 ```sh
 git clone https://github.com/BreezeDelegate/beforeup.git
@@ -21,7 +29,7 @@ go build -o beforeup .
 ./beforeup check -f compose.yaml
 ```
 
-Des exécutables et leurs empreintes SHA-256 sont disponibles dans les [releases](https://github.com/BreezeDelegate/beforeup/releases). Les versions de prépublication à partir de 0.3.2 incluent également des paquets `.deb` pour Debian et Ubuntu, avec [guide d’installation](docs/install.md) et [compatibilité vérifiée](docs/platform-support.md).
+Consulter le [guide d’installation](docs/install.md) et la [compatibilité vérifiée](docs/platform-support.md).
 
 ```sh
 beforeup check

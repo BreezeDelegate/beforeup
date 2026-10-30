@@ -10,13 +10,21 @@ A Compose file can be valid while its host is not ready. The published port may 
 
 BeforeUp checks those conditions without starting containers. It also warns when a local Compose build context directory is missing. It relies on Docker Compose to parse the project rather than maintaining another Compose parser.
 
-**Linux only, for now.** This is an early release. Read the [limitations](#what-it-does-not-know) before using it in automation.
+**Linux only.** BeforeUp 0.4.3 is the first stable release for supported native Linux Docker Engine setups. This is a read-only diagnostic, not a guarantee that deployment will succeed. Review the [limitations](#what-it-does-not-know) before using it in automation.
 
 ## Try it
 
 Requirements: Docker CLI with Compose v2, Linux, and `ss` (from `iproute2`). Syntax validation works without Engine access; host and running-container checks require permission to access Docker. BeforeUp reports missing access instead of requesting privilege escalation.
 
-Build from source using Go 1.24 or newer:
+**Debian/Ubuntu (amd64):** download `beforeup_0.4.3_amd64.deb` from the [v0.4.3 release](https://github.com/BreezeDelegate/beforeup/releases/tag/v0.4.3), verify its hash against `SHA256SUMS`, then install:
+
+```sh
+sha256sum -c SHA256SUMS --ignore-missing
+sudo apt install ./beforeup_0.4.3_amd64.deb
+beforeup check -f compose.yaml
+```
+
+For other supported Linux hosts, download the `amd64` or `arm64` tarball and verify its SHA-256 checksum. You can also build from source with Go 1.24 or newer:
 
 ```sh
 git clone https://github.com/BreezeDelegate/beforeup.git
@@ -25,9 +33,7 @@ go build -o beforeup .
 ./beforeup check -f compose.yaml
 ```
 
-Or use the Linux executable and SHA-256 checksum attached to a [release](https://github.com/BreezeDelegate/beforeup/releases). Check the checksum before running a downloaded executable.
-
-For Debian and Ubuntu, a native `.deb` package is also available starting with the 0.3.2 preview release. See [installation instructions](docs/install.md) and the [compatibility matrix](docs/platform-support.md).
+See the [full installation guide](docs/install.md) and [compatibility matrix](docs/platform-support.md).
 
 ```sh
 beforeup check
@@ -83,7 +89,7 @@ A matching report means only the **inspected port bindings, data mounts, declare
 
 Bind source paths are deliberately omitted from reports, because environment interpolation can place sensitive values in them. A missing bind source using legacy short syntax is a warning, not necessarily a failure: Docker may create a new empty directory. A port in use is also a warning. An already-running Compose stack can legitimately own its own published port.
 
-The default disk warning threshold is 2 GiB. Change it with `--min-free-gib N`, or use zero to disable that check. This is a headroom warning, not an estimate of the space your images will need.
+The default disk warning threshold is 2 GiB. Change it with `--min-free-gib N`, or use zero to disable that check. The warning concerns available headroom, not the space your images will actually need.
 
 For rootless Docker, BeforeUp does not assume that an existing host bind source can be accessed by the container. Privileged host ports may be allowed through system or RootlessKit settings; those cases remain **warnings, never confirmed blockers**. On Docker Desktop for Linux, local socket, bind-source and disk checks are skipped because Docker Engine runs inside a VM. Container-metadata comparison can still run.
 

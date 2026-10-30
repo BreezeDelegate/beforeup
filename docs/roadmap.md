@@ -2,7 +2,7 @@
 
 BeforeUp stays a small, read-only Docker Compose preflight CLI. Completed work belongs in [CHANGELOG.md](../CHANGELOG.md); this file tracks open decisions only.
 
-## Before a stable release
+## Remaining compatibility validation (not included in the current support promise)
 
 - Test rootless bind-mount write access with real unprivileged container IDs, including a negative permissions case.
 - Verify Docker Desktop for Linux and SELinux-enforcing hosts independently, or document those configurations as unsupported.

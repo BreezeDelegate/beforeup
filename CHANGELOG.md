@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.3
+
+- First stable release for the documented native Linux Docker Engine scope, using the validated 0.4.3 preview feature set.
+- Publish versioned Linux amd64/arm64 archives, Debian packages and checksums. Specialist Docker environments remain explicitly unverified.
+
 ## 0.4.3-preview.1
 
 - Report `BUILD_CONTEXT_INVALID` when a local build context is a regular file instead of a directory.

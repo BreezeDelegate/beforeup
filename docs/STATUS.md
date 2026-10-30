@@ -2,7 +2,7 @@
 
 ## 30 October 2026
 
-BeforeUp is a public Linux-only preview. The baseline `check` command verifies Docker Compose configuration against selected local host conditions. The `compare` command reads active containers belonging to the same project and identifies changes in published ports, data mounts, declared container environment values and image references.
+BeforeUp 0.4.3 is the first stable Linux release for the documented native Docker Engine scope. Stable means packaged and regression-tested, not that every Engine environment or deployment is certified. The baseline `check` command verifies Docker Compose configuration against selected local host conditions. The `compare` command reads active containers belonging to the same project and identifies changes in published ports, data mounts, declared container environment values and image references.
 
 ### Verified
 
@@ -45,7 +45,7 @@ The public README leads with the actual supported use cases and links to native 
 
 ### Next decision
 
-Arrange independent tests using varied real Compose deployments. Collect actual false-positive cases and feedback about whether comparisons answer a question better than Docker native commands and existing preflight projects. Do not claim stable readiness or superior adoption before that evidence exists.
+Gather independent real-world feedback on false positives, rootless/SELinux/Desktop behavior and whether comparisons add value beyond native Docker commands. Do not imply that a stable release proves these environments or external adoption.
 
 ### Workspace
 

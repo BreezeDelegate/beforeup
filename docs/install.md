@@ -11,7 +11,7 @@ Choose the Linux `amd64` or `arm64` archive in [Releases](https://github.com/Bre
 From the release assets, download the `.deb` matching your CPU architecture, then install that local file:
 
 ```sh
-sudo apt install ./beforeup_0.4.3.preview1_amd64.deb
+sudo apt install ./beforeup_0.4.3_amd64.deb
 beforeup version
 beforeup check -f compose.yaml
 beforeup compare -f compose.yaml

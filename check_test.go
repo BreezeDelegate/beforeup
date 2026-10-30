@@ -160,7 +160,7 @@ func TestSocketAddressOverlaps(t *testing.T) {
 }
 func TestCLIArgHandling(t *testing.T) {
 	var o, e bytes.Buffer
-	if code := start([]string{"version"}, &o, &e); code != 0 || !strings.Contains(o.String(), "0.4.3-preview.1") {
+	if code := start([]string{"version"}, &o, &e); code != 0 || strings.TrimSpace(o.String()) != version {
 		t.Fatal(o.String(), e.String(), code)
 	}
 	o.Reset()
