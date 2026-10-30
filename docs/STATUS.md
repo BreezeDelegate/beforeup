@@ -6,6 +6,8 @@ BeforeUp 0.4.3 is the first stable Linux release for the documented native Docke
 
 ### Verified
 
+- CI/CD verification (30 October 2026): published v0.4.3 binary passed the five-case clean/warning/strict/blocker/invalid JSON status contract on the native Debian VPS, including redaction of synthetic environment names, values and bind paths. Added a reproducible black-box script and a self-managed runner guide; no hosted GitHub runner, Go runtime changes or production Docker mutations were introduced. The existing 14-case read-only Compose matrix also passed; Go unit tests were not rerun because the compiler was unavailable in this session.
+
 - Final quality review (0.4.3 preview): existing local build-context files, published-port finding order and failed Docker port-ownership lookups have regression coverage. A failed owner lookup no longer produces a green ports finding; warnings remain non-blocking without `--strict`.
 
 - User-scenario coverage (0.4.2 preview): six representative official Docker Compose files passed static analysis. A missing local build-context check was added after the multi-service NGINX/Node.js/Redis example reproduced the gap. A separate real disposable Compose service validated matching and changed environment/mount diagnostics without host-path disclosure. Rootless application container writes remain unverified because this VPS lacks the required AppArmor/cgroup delegation in its test session.

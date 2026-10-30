@@ -72,6 +72,6 @@ BeforeUp n'exécute pas `docker compose up`, ne crée pas de répertoires et ne 
 
 Pour un moteur Docker distant ou une VM Docker Desktop, les contrôles locaux non fiables sont ignorés. Les tests Docker rootless, SELinux et IPv6 restent partiels : consulte la [matrice de compatibilité](docs/platform-support.md).
 
-[Cas d’usage fréquents (anglais)](docs/common-issues.md) · [Documentation principale en anglais](README.md) · [Sécurité](SECURITY.md) · [Contribuer](CONTRIBUTING.md) · [Validation](docs/validation.md)
+[Exemple CI/CD sur l'hôte Linux (anglais)](docs/ci.md) · [Cas d’usage fréquents (anglais)](docs/common-issues.md) · [Documentation principale en anglais](README.md) · [Sécurité](SECURITY.md) · [Contribuer](CONTRIBUTING.md) · [Validation](docs/validation.md)
 
 Licence MIT. [LICENSE](LICENSE). Projet de [BreezeDelegate](https://github.com/BreezeDelegate) ; activités professionnelles sur [vitrine.bar](https://vitrine.bar/).

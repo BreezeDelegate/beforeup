@@ -95,6 +95,8 @@ The default disk warning threshold is 2 GiB. Change it with `--min-free-gib N`, 
 
 For rootless Docker, BeforeUp does not assume that an existing host bind source can be accessed by the container. Privileged host ports may be allowed through system or RootlessKit settings; those cases remain **warnings, never confirmed blockers**. On Docker Desktop for Linux, local socket, bind-source and disk checks are skipped because Docker Engine runs inside a VM. Container-metadata comparison can still run.
 
+For CI/CD on the target Linux host, see the [preflight pipeline guide](docs/ci.md) and its [reproducible exit-code test](tests/ci_contract.py).
+
 ## Output and exit codes
 
 The normal output is text suitable for a terminal; `--format json` emits findings with stable IDs, severity, service and advice.
