@@ -1,12 +1,13 @@
 # Project status
 
-## 2 November 2026 — 0.4.4 release validation
+## 2 November 2026 — 0.4.4 public release verified
 
 - Version 0.4.4 includes three warning IDs: `RESTART_POLICY_OVERRIDDEN`, `RESTART_POLICY_INVALID` and `PRE_START_REPLICA_UNSUPPORTED`, limited to independently exercised Compose clients 5.5.0, 5.5.1, 5.6.0 and 5.6.1.
 - On Debian 13 amd64, rootful Engine 29.8.1, 20 primary and 16 edge-case disposable startup checks reproduced runtime failures and policy downgrades; four valid controls started successfully.
 - Read-only CLI regression passed 56/56 cases. Original 14-case Compose matrix, Go unit and race tests, vet, output redaction/exit-code contract and fail-closed format gate also passed; statement coverage 84.0 percent.
 - Runtime compatibility remains **unverified** for SELinux-enforcing hosts, writable rootless binds, Docker Desktop, ARM64 Engine integration and other Compose clients. Cross-built ARM64 assets alone are not ARM64 runtime proof.
-- Release contents are limited to read-only diagnostics. No production Docker service is modified; distribution of the release does not expand compatibility claims.
+- GitHub release v0.4.4 is public and marked latest (5 assets: 2 Debian packages, 2 Linux archives and SHA256SUMS). All uploaded assets were downloaded and independently compared byte-for-byte to the VPS-built originals; checksum verification passed.
+- Release contents are limited to read-only diagnostics. No production Docker service is modified; publication does not expand compatibility claims.
 
 ## 30 October 2026
 

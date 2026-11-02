@@ -10,17 +10,17 @@ Two existing projects cover other parts of the problem:
 
 BeforeUp focuses instead on a small set of facts about the **actual host**: live listeners, missing bind sources, access to Docker Engine and free space in Docker's data filesystem.
 
-## Runtime compatibility checks (2 November 2026; unreleased candidate)
+## Runtime compatibility checks (2 November 2026; released in 0.4.4)
 
-The candidate warns on two independently reproduced Docker Engine 29.8.1 with Compose 5.5.0, 5.5.1, 5.6.0 and 5.6.1 gaps on a disposable Debian 13 rootful AppArmor environment:
+BeforeUp 0.4.4 reports three warning IDs for two runtime-failure families independently reproduced on Debian 13, Docker Engine 29.8.1, rootful AppArmor, with Compose 5.5.0, 5.5.1, 5.6.0 and 5.6.1:
 
 - `restart: always` plus `deploy.restart_policy.delay` without `condition` launched with restart policy `no`, while explicit `condition: any` preserved `always`. A `max_attempts`-only variant failed creation instead (not a silent failure), including when no service-level restart was configured or when `condition: any` was specified. Explicit `on-failure` with `max_attempts: 3` launched successfully in native controls.
 - `pre_start.per_replica: true` passed Compose config validation but failed `compose up` with an unsupported-feature error.
-- Focused Go tests cover version scope, inactive profiles, safe controls, warning order and strict mode. Fourteen read-only native Compose CLI fixtures on each of the four verified Compose versions test real parsing and candidate binary output. A normal `pre_start` hook with three replicas succeeded in separate real-Engine controls. Other Compose versions and operating systems are not certified.
+- Focused Go tests cover version scope, inactive profiles, safe controls, warning order and strict mode. Fourteen read-only native Compose CLI fixtures on each of the four verified Compose versions test real parsing and the 0.4.4 binary output. A normal `pre_start` hook with three replicas succeeded in separate real-Engine controls. Other Compose versions and operating systems are not certified.
 
 Extended regression matrix: delay-only overrides for restart: always, unless-stopped and on-failure; missing and explicit-any conditions with positive max_attempts; and an empty deploy restart-policy object all matched real Engine outcomes on Compose 5.5.0, 5.5.1, 5.6.0 and 5.6.1. No-restart delay-only and explicit condition:on-failure + max_attempts remain negative controls. All disposable projects and any created hook containers were removed after inspection. The make check formatting command now fails when gofmt is missing or exits unsuccessfully; both negative controls were exercised.
 
-This candidate has not been publicly published; detailed runtime evidence remains in the private research repository.
+These diagnostics were published in BeforeUp 0.4.4. Detailed independent Engine reproduction evidence remains in the private research repository; the public regression fixtures document the behavior without exposing private host details.
 
 ## Reproduced comparison (29 October 2026)
 
