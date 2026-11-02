@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only Compose CLI regression for two runtime mismatches confirmed on Compose 5.5.1."""
+"""Read-only Compose CLI regression for runtime mismatches on four tested Compose versions."""
 import argparse
 import json
 import subprocess
@@ -11,8 +11,8 @@ def call(*args):
 
 def run(binary):
     version = call("docker", "compose", "version", "--short")
-    if version.returncode or version.stdout.strip().lstrip("v") != "5.5.1":
-        print("compose_runtime_guards: SKIP (only Compose 5.5.1 was independently reproduced)")
+    if version.returncode or version.stdout.strip().lstrip("v") not in ("5.5.0", "5.5.1", "5.6.0", "5.6.1"):
+        print("compose_runtime_guards: SKIP (Compose version not independently reproduced)")
         return
     fixtures = {
         "pre-start-unsupported": (
@@ -30,7 +30,7 @@ def run(binary):
         "restart-rejected": (
             "services:\n  app:\n    image: nginx:stable-alpine\n"
             "    restart: always\n    deploy:\n      restart_policy:\n        max_attempts: 3\n",
-            "RESTART_POLICY_OVERRIDDEN",
+            "RESTART_POLICY_INVALID",
         ),
         "restart-explicit": (
             "services:\n  app:\n    image: nginx:stable-alpine\n"
@@ -49,6 +49,15 @@ def run(binary):
             "        per_replica: true\n", None
         ),
     }
+    fixtures.update({
+        'onfailure-delay': ('services:\n  app:\n    image: nginx:stable-alpine\n    restart: on-failure\n    deploy:\n      restart_policy:\n        delay: 5s\n', 'RESTART_POLICY_OVERRIDDEN'),
+        'unless-delay': ('services:\n  app:\n    image: nginx:stable-alpine\n    restart: unless-stopped\n    deploy:\n      restart_policy:\n        delay: 5s\n', 'RESTART_POLICY_OVERRIDDEN'),
+        'max-without-restart': ('services:\n  app:\n    image: nginx:stable-alpine\n    deploy:\n      restart_policy:\n        max_attempts: 3\n', 'RESTART_POLICY_INVALID'),
+        'any-with-max': ('services:\n  app:\n    image: nginx:stable-alpine\n    deploy:\n      restart_policy:\n        condition: any\n        max_attempts: 3\n', 'RESTART_POLICY_INVALID'),
+        'empty-policy': ('services:\n  app:\n    image: nginx:stable-alpine\n    restart: always\n    deploy:\n      restart_policy: {}\n', 'RESTART_POLICY_OVERRIDDEN'),
+        'delay-no-restart': ('services:\n  app:\n    image: nginx:stable-alpine\n    deploy:\n      restart_policy:\n        delay: 5s\n', None),
+        'valid-onfailure-max': ('services:\n  app:\n    image: nginx:stable-alpine\n    restart: on-failure\n    deploy:\n      restart_policy:\n        condition: on-failure\n        max_attempts: 3\n', None),
+    })
     with tempfile.TemporaryDirectory(prefix="beforeup-runtime-guards-") as td:
         for name, (source, finding_id) in fixtures.items():
             file = Path(td) / (name + ".yml")
@@ -60,7 +69,7 @@ def run(binary):
             assert checked.returncode == 0, f"{name}: non-strict status {checked.returncode}"
             report = json.loads(checked.stdout)
             found = [f for f in report["findings"]
-                     if f["id"] in ("PRE_START_REPLICA_UNSUPPORTED", "RESTART_POLICY_OVERRIDDEN")]
+                     if f["id"] in ("PRE_START_REPLICA_UNSUPPORTED", "RESTART_POLICY_OVERRIDDEN", "RESTART_POLICY_INVALID")]
             if finding_id:
                 assert len(found) == 1 and found[0]["id"] == finding_id and found[0]["level"] == "warning", (name, found)
                 strict = call(*args, "--strict")
@@ -69,7 +78,7 @@ def run(binary):
             else:
                 assert not found, (name, found)
             assert "secret-must-never-appear" not in checked.stdout, name
-    print(f"compose_runtime_guards: PASS ({len(fixtures)} fixtures; Compose 5.5.1; no Engine writes)")
+    print(f"compose_runtime_guards: PASS ({len(fixtures)} fixtures; Compose {version.stdout.strip()}; no Engine writes)")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

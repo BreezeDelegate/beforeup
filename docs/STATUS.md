@@ -1,10 +1,13 @@
 # Project status
 
-## 2 November 2026 — unreleased local candidate
+## 2 November 2026 — completed local QA, not publicly released
 
-- Isolated development worktree adds `RESTART_POLICY_OVERRIDDEN` and `PRE_START_REPLICA_UNSUPPORTED` as warnings **only for Docker Compose 5.5.1**, with Docker Engine 29.8.1 separately reproduced on Debian 13.
-- Unit cases cover affected fixtures, valid controls, inactive profiles, other untested versions, deterministic order, strict-mode exit; a seven-case native Compose CLI test covers the candidate binary and output redaction.
-- This candidate is **not released or published**. Rootful AppArmor/amd64 Debian 13 is the only Engine test environment, with no SELinux, rootless, Docker Desktop or ARM64 runtime claims.
+- Source candidate: local branch dev/compose-runtime-guards-20261102 on the canonical personal VPS; remote public main and published v0.4.3 remain unchanged.
+- Runtime evidence on Debian 13 amd64, rootful Docker Engine 29.8.1 with each checked official Compose CLI: 5.5.0, 5.5.1, 5.6.0, 5.6.1. Across these four versions, 20 primary reproductions and 16 additional restart edge cases matched expected outcomes. Four valid negative-control startups (ordinary hook/three replicas and on-failure:3 retry) passed on 5.5.1 and 5.6.1. No production project was changed.
+- Candidate CLI verification: 14 read-only Compose fixtures for each of four independently tested versions (56/56 PASS), plus existing 14-scenario matrix, CI exit/status and redaction contract, unit tests, race tests, vet and gofmt. Go statement coverage was 84.0 percent.
+- Fixed the make check gate so missing or failing gofmt cannot silently pass. Native amd64 candidate built; Linux arm64 binary cross-compiled but was **not** executed and provides no arm64 runtime evidence.
+- Three warning IDs in two feature groups: RESTART_POLICY_OVERRIDDEN, RESTART_POLICY_INVALID and PRE_START_REPLICA_UNSUPPORTED. Unknown Compose versions are deliberately not classified; no general Linux distribution, SELinux, rootless, Docker Desktop, IPv6 or ARM64 certification.
+- No release, public push, public PR, comment, promotional outreach, or changed live services. Private research captures the precise reproduction matrix and outstanding version/OS bounds.
 
 ## 30 October 2026
 

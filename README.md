@@ -69,8 +69,9 @@ A matching report means only the **inspected port bindings, data mounts, declare
 | --- | --- |
 | `COMPOSE` | The Docker configuration was resolved successfully |
 | `DAEMON` | Docker Engine is reachable by the current account |
-| `RESTART_POLICY_OVERRIDDEN` | On independently tested Compose 5.5.1, `restart: always` plus incomplete `deploy.restart_policy` may silently disable restarts or fail at startup (warning) |
-| `PRE_START_REPLICA_UNSUPPORTED` | On independently tested Compose 5.5.1, `pre_start.per_replica: true` passes config validation but is rejected at startup (warning) |
+| `RESTART_POLICY_OVERRIDDEN` | On verified Compose 5.5.0, 5.5.1, 5.6.0 and 5.6.1, an incomplete deploy policy can silently replace an explicit service restart policy (warning) |
+| `RESTART_POLICY_INVALID` | On those versions, a positive `max_attempts` without `condition: on-failure` can prevent container creation (warning) |
+| `PRE_START_REPLICA_UNSUPPORTED` | On independently tested Compose 5.5.0, 5.5.1, 5.6.0 and 5.6.1, `pre_start.per_replica: true` passes config validation but is rejected at startup (warning) |
 | `PORT_IN_USE` | A requested TCP/UDP host port has an unassigned listener |
 | `PORT_OWNED_BY_SERVICE` | The running version of this service already owns its published port |
 | `PORT_BINDING_CHANGED` | The running service uses the requested port on a different host address |
@@ -93,7 +94,7 @@ A matching report means only the **inspected port bindings, data mounts, declare
 
 Bind source paths are deliberately omitted from reports, because environment interpolation can place sensitive values in them. A missing bind source using legacy short syntax is a warning, not necessarily a failure: Docker may create a new empty directory. A port in use is also a warning. An already-running Compose stack can legitimately own its own published port.
 
-Runtime mismatch warnings are enabled only for **Docker Compose 5.5.1**, independently reproduced with Docker Engine 29.8.1 on native Debian 13. Other Compose versions are not classified by these checks until tested; their absence is not proof of compatibility. These warnings do not run containers or change restart settings. For suspected restart-policy problems, compare `docker compose config` with the container's `HostConfig.RestartPolicy` via `docker inspect` on an isolated deployment. Removing `per_replica` changes hook semantics and is not a universal fix.
+These runtime-mismatch warnings are enabled only for **Docker Compose 5.5.0, 5.5.1, 5.6.0 and 5.6.1**, independently reproduced with Docker Engine 29.8.1 on native Debian 13. Other Compose versions are not classified by these checks until tested; their absence is not proof of compatibility. These warnings do not run containers or change restart settings. For suspected restart-policy problems, compare `docker compose config` with the container's `HostConfig.RestartPolicy` via `docker inspect` on an isolated deployment. Removing `per_replica` changes hook semantics and is not a universal fix.
 
 The default disk warning threshold is 2 GiB. Change it with `--min-free-gib N`, or use zero to disable that check. The warning concerns available headroom, not the space your images will actually need.
 
@@ -110,7 +111,7 @@ You can reproduce 14 Docker Compose configuration scenarios locally after buildi
 ```sh
 go build -o beforeup .
 python3 tests/compose_matrix.py --binary ./beforeup
-python3 tests/compose_runtime_guards.py --binary ./beforeup  # only asserts on tested Compose 5.5.1
+python3 tests/compose_runtime_guards.py --binary ./beforeup  # only these four tested Compose versions
 ```
 
 This optional test needs Python 3 and authorized local Docker Engine access. It only calls Docker Compose configuration validation and read-only host queries. The running-project ownership and comparison scenarios are covered separately in Go tests and [validation notes](docs/validation.md).

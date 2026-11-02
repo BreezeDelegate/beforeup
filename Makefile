@@ -1,14 +1,16 @@
 GO ?= go
+GOFMT ?= gofmt
 
 .PHONY: check fmt test build
 
 check:
-	@unformatted="$$(gofmt -l *.go)"; if [ -n "$$unformatted" ]; then printf 'Go files need gofmt:\n%s\n' "$$unformatted"; exit 1; fi
+	@command -v $(GOFMT) >/dev/null 2>&1 || { echo "gofmt is required for make check"; exit 1; }
+	@unformatted="$$( $(GOFMT) -l *.go )" || exit 1; if [ -n "$$unformatted" ]; then printf 'Go files need gofmt:\n%s\n' "$$unformatted"; exit 1; fi
 	$(GO) vet ./...
 	$(GO) test ./...
 
 fmt:
-	gofmt -w *.go
+	$(GOFMT) -w *.go
 
 test:
 	$(GO) test ./...

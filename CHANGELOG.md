@@ -2,8 +2,8 @@
 
 ## Unreleased (local validation candidate)
 
-- Add version-scoped warnings for two reproduced Docker Compose 5.5.1 runtime mismatches: omitted deploy restart condition and unsupported per-replica pre-start hook.
-- Keep both findings as warnings with strict-mode opt-in; add positive/negative, profile, JSON and privacy regressions. No generalized rootless/SELinux/distro support claims.
+- Warn about three verified Compose runtime configuration risks across four independently tested Compose versions (5.5.0, 5.5.1, 5.6.0 and 5.6.1): overridden restart behavior, invalid retry limits and unsupported per-replica startup hooks.
+- Preserve warning severity and opt-in strict exits; add regression, privacy, profile and 56 native Compose CLI fixture checks. Fix the make check formatter gate to fail when gofmt is unavailable or fails. No new distribution or Docker Engine compatibility claims.
 
 ## 0.4.3
 

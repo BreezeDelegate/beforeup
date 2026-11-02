@@ -111,7 +111,8 @@ type service struct {
 	Restart string `json:"restart"`
 	Deploy  struct {
 		RestartPolicy *struct {
-			Condition string `json:"condition"`
+			Condition   string  `json:"condition"`
+			MaxAttempts *uint64 `json:"max_attempts"`
 		} `json:"restart_policy"`
 	} `json:"deploy"`
 	PreStart []struct {
@@ -151,8 +152,9 @@ func runtimeComposeWarnings(ctx context.Context, h Host, m model, o Options, r *
 		if !profileEnabled(svc.Profiles, o.Profiles, h.Getenv("COMPOSE_PROFILES")) {
 			continue
 		}
-		restartRisk := svc.Restart == "always" &&
-			svc.Deploy.RestartPolicy != nil && svc.Deploy.RestartPolicy.Condition == ""
+		policy := svc.Deploy.RestartPolicy
+		restartRisk := policy != nil && policy.Condition == "" && (svc.Restart == "always" || svc.Restart == "unless-stopped" || strings.HasPrefix(svc.Restart, "on-failure"))
+		invalidRetries := policy != nil && policy.MaxAttempts != nil && *policy.MaxAttempts > 0 && policy.Condition != "on-failure"
 		hookRisk := false
 		for _, hook := range svc.PreStart {
 			if hook.PerReplica {
@@ -160,7 +162,7 @@ func runtimeComposeWarnings(ctx context.Context, h Host, m model, o Options, r *
 				break
 			}
 		}
-		if restartRisk || hookRisk {
+		if restartRisk || invalidRetries || hookRisk {
 			candidates = append(candidates, name)
 		}
 	}
@@ -169,21 +171,28 @@ func runtimeComposeWarnings(ctx context.Context, h Host, m model, o Options, r *
 	}
 	output, err := h.Run(ctx, "docker", "compose", "version", "--short")
 	// Other versions have not been validated. Do not claim an incompatibility.
-	if err != nil || strings.TrimPrefix(strings.TrimSpace(string(output)), "v") != "5.5.1" {
+	version := strings.TrimPrefix(strings.TrimSpace(string(output)), "v")
+	if err != nil || (version != "5.5.0" && version != "5.5.1" && version != "5.6.0" && version != "5.6.1") {
 		return
 	}
 	sort.Strings(candidates)
 	for _, name := range candidates {
 		svc := m.Services[name]
-		if svc.Restart == "always" && svc.Deploy.RestartPolicy != nil && svc.Deploy.RestartPolicy.Condition == "" {
+		policy := svc.Deploy.RestartPolicy
+		if policy != nil && policy.MaxAttempts != nil && *policy.MaxAttempts > 0 && policy.Condition != "on-failure" {
+			r.add("RESTART_POLICY_INVALID", "warning", name,
+				fmt.Sprintf("Compose %s may reject a retry limit without condition: on-failure.", version),
+				"Use condition: on-failure when max_attempts is required, or remove max_attempts.")
+		} else if policy != nil && policy.Condition == "" &&
+			(svc.Restart == "always" || svc.Restart == "unless-stopped" || strings.HasPrefix(svc.Restart, "on-failure")) {
 			r.add("RESTART_POLICY_OVERRIDDEN", "warning", name,
-				"Compose 5.5.1 may discard restart: always or reject startup when deploy.restart_policy has no condition.",
-				"Review deploy.restart_policy and inspect the actual container restart policy; delay-only can become no, while max_attempts requires on-failure. Use an explicit compatible condition or remove the deploy override.")
+				fmt.Sprintf("Compose %s may discard the service restart policy when deploy.restart_policy has no condition.", version),
+				"A delay-only deploy policy can silently set the Engine restart policy to no; set an explicit compatible condition or remove the override, then inspect HostConfig.RestartPolicy.")
 		}
 		for _, hook := range svc.PreStart {
 			if hook.PerReplica {
 				r.add("PRE_START_REPLICA_UNSUPPORTED", "warning", name,
-					"Compose 5.5.1 accepts pre_start.per_replica but rejects it when starting the service.",
+					fmt.Sprintf("Compose %s accepts pre_start.per_replica but rejects it when starting the service.", version),
 					"Remove per_replica only if a once-per-service hook is sufficient; otherwise use a supported per-replica initialization strategy.")
 				break
 			}
