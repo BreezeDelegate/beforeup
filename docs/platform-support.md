@@ -21,6 +21,10 @@ All ten image tests passed `beforeup version`. No Docker Engine integration was 
 
 Reproduce the smoke tests on a Linux/amd64 machine with Docker access using `sh tests/distro-smoke.sh ./beforeup`. This optional test downloads missing base images and leaves them cached. The results check Linux ABI/static binary portability on ten base images. They do **not** establish full support for ten distributions. Docker CLI, Compose v2, `ss`, security confinement, rootless daemon permissions and host networking require separate integration tests.
 
+## Compose runtime guard regression — 2 November 2026
+
+For BeforeUp 0.4.4, the `RESTART_POLICY_OVERRIDDEN`, `RESTART_POLICY_INVALID` and `PRE_START_REPLICA_UNSUPPORTED` findings were independently reproduced on the maintainer Debian 13 amd64 host, rootful Docker Engine 29.8.1, using official Compose binaries 5.5.0, 5.5.1, 5.6.0 and 5.6.1. Valid restart policies and ordinary pre-start hooks were also checked. Other Compose client versions are deliberately not classified. These observations do not qualify other distributions, kernel security modes, Docker Desktop, or ARM64 Engine behavior.
+
 ## Native Debian package tests
 
 The `amd64` package was installed, executed and removed successfully in isolated containers with Debian 13, Ubuntu 24.04 and Ubuntu 26.04. No services were created. The packages contain only the executable and documentation, without install-time scripts or automatic privilege changes.
@@ -30,7 +34,7 @@ The `arm64` package was built with `GOARCH=arm64` and its Debian metadata inspec
 Reproduce the package install/remove check with an authorized local Docker Engine:
 
 ```sh
-sh tests/deb-smoke.sh path/to/beforeup_0.4.3_amd64.deb
+sh tests/deb-smoke.sh path/to/beforeup_0.4.4_amd64.deb
 ```
 
 The script creates and removes temporary, network-disabled containers. It does not mount the host Docker socket.

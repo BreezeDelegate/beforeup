@@ -10,7 +10,7 @@ A Compose file can be valid while its host is not ready. The published port may 
 
 BeforeUp checks those conditions without starting containers. It also warns when a local Compose build context directory is missing. It relies on Docker Compose to parse the project rather than maintaining another Compose parser.
 
-**Linux only.** BeforeUp 0.4.3 is the first stable release for supported native Linux Docker Engine setups. This is a read-only diagnostic, not a guarantee that deployment will succeed. Review the [limitations](#what-it-does-not-know) before using it in automation.
+**Linux only.** BeforeUp 0.4.4 adds targeted runtime-configuration warnings to the stable native Linux release. This is a read-only diagnostic, not a guarantee that deployment will succeed. Review the [limitations](#what-it-does-not-know) before using it in automation.
 
 **See BeforeUp in action:** [18-second terminal demo](assets/demo-preflight.mp4) ([GIF](assets/demo-preflight.gif), [PNG preview](assets/demo-preflight.png)). The demonstration replays real results from an isolated Linux Compose fixture.
 
@@ -18,11 +18,11 @@ BeforeUp checks those conditions without starting containers. It also warns when
 
 Requirements: Docker CLI with Compose v2, Linux, and `ss` (from `iproute2`). Syntax validation works without Engine access; host and running-container checks require permission to access Docker. BeforeUp reports missing access instead of requesting privilege escalation.
 
-**Debian/Ubuntu (amd64):** download `beforeup_0.4.3_amd64.deb` from the [v0.4.3 release](https://github.com/BreezeDelegate/beforeup/releases/tag/v0.4.3), verify its hash against `SHA256SUMS`, then install:
+**Debian/Ubuntu (amd64):** download `beforeup_0.4.4_amd64.deb` from the [v0.4.4 release](https://github.com/BreezeDelegate/beforeup/releases/tag/v0.4.4), verify its hash against `SHA256SUMS`, then install:
 
 ```sh
 sha256sum -c SHA256SUMS --ignore-missing
-sudo apt install ./beforeup_0.4.3_amd64.deb
+sudo apt install ./beforeup_0.4.4_amd64.deb
 beforeup check -f compose.yaml
 ```
 

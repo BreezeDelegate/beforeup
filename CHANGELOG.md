@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (local validation candidate)
+## 0.4.4
 
 - Warn about three verified Compose runtime configuration risks across four independently tested Compose versions (5.5.0, 5.5.1, 5.6.0 and 5.6.1): overridden restart behavior, invalid retry limits and unsupported per-replica startup hooks.
 - Preserve warning severity and opt-in strict exits; add regression, privacy, profile and 56 native Compose CLI fixture checks. Fix the make check formatter gate to fail when gofmt is unavailable or fails. No new distribution or Docker Engine compatibility claims.

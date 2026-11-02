@@ -1,13 +1,12 @@
 # Project status
 
-## 2 November 2026 — completed local QA, not publicly released
+## 2 November 2026 — 0.4.4 release validation
 
-- Source candidate: local branch dev/compose-runtime-guards-20261102 on the canonical personal VPS; remote public main and published v0.4.3 remain unchanged.
-- Runtime evidence on Debian 13 amd64, rootful Docker Engine 29.8.1 with each checked official Compose CLI: 5.5.0, 5.5.1, 5.6.0, 5.6.1. Across these four versions, 20 primary reproductions and 16 additional restart edge cases matched expected outcomes. Four valid negative-control startups (ordinary hook/three replicas and on-failure:3 retry) passed on 5.5.1 and 5.6.1. No production project was changed.
-- Candidate CLI verification: 14 read-only Compose fixtures for each of four independently tested versions (56/56 PASS), plus existing 14-scenario matrix, CI exit/status and redaction contract, unit tests, race tests, vet and gofmt. Go statement coverage was 84.0 percent.
-- Fixed the make check gate so missing or failing gofmt cannot silently pass. Native amd64 candidate built; Linux arm64 binary cross-compiled but was **not** executed and provides no arm64 runtime evidence.
-- Three warning IDs in two feature groups: RESTART_POLICY_OVERRIDDEN, RESTART_POLICY_INVALID and PRE_START_REPLICA_UNSUPPORTED. Unknown Compose versions are deliberately not classified; no general Linux distribution, SELinux, rootless, Docker Desktop, IPv6 or ARM64 certification.
-- No release, public push, public PR, comment, promotional outreach, or changed live services. Private research captures the precise reproduction matrix and outstanding version/OS bounds.
+- Version 0.4.4 includes three warning IDs: `RESTART_POLICY_OVERRIDDEN`, `RESTART_POLICY_INVALID` and `PRE_START_REPLICA_UNSUPPORTED`, limited to independently exercised Compose clients 5.5.0, 5.5.1, 5.6.0 and 5.6.1.
+- On Debian 13 amd64, rootful Engine 29.8.1, 20 primary and 16 edge-case disposable startup checks reproduced runtime failures and policy downgrades; four valid controls started successfully.
+- Read-only CLI regression passed 56/56 cases. Original 14-case Compose matrix, Go unit and race tests, vet, output redaction/exit-code contract and fail-closed format gate also passed; statement coverage 84.0 percent.
+- Runtime compatibility remains **unverified** for SELinux-enforcing hosts, writable rootless binds, Docker Desktop, ARM64 Engine integration and other Compose clients. Cross-built ARM64 assets alone are not ARM64 runtime proof.
+- Release contents are limited to read-only diagnostics. No production Docker service is modified; distribution of the release does not expand compatibility claims.
 
 ## 30 October 2026
 
