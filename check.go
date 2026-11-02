@@ -108,6 +108,15 @@ type service struct {
 	Build struct {
 		Context string `json:"context"`
 	} `json:"build"`
+	Restart string `json:"restart"`
+	Deploy  struct {
+		RestartPolicy *struct {
+			Condition string `json:"condition"`
+		} `json:"restart_policy"`
+	} `json:"deploy"`
+	PreStart []struct {
+		PerReplica bool `json:"per_replica"`
+	} `json:"pre_start"`
 	Image       string             `json:"image"`
 	Platform    string             `json:"platform"`
 	Environment map[string]*string `json:"environment"`
@@ -132,6 +141,54 @@ type model struct {
 	Volumes  map[string]struct {
 		Name string `json:"name"`
 	} `json:"volumes"`
+}
+
+// Runtime compatibility diagnostics are limited to Compose versions reproduced
+// against a disposable real Engine. A valid config alone is not a startup proof.
+func runtimeComposeWarnings(ctx context.Context, h Host, m model, o Options, r *Report) {
+	candidates := make([]string, 0)
+	for name, svc := range m.Services {
+		if !profileEnabled(svc.Profiles, o.Profiles, h.Getenv("COMPOSE_PROFILES")) {
+			continue
+		}
+		restartRisk := svc.Restart == "always" &&
+			svc.Deploy.RestartPolicy != nil && svc.Deploy.RestartPolicy.Condition == ""
+		hookRisk := false
+		for _, hook := range svc.PreStart {
+			if hook.PerReplica {
+				hookRisk = true
+				break
+			}
+		}
+		if restartRisk || hookRisk {
+			candidates = append(candidates, name)
+		}
+	}
+	if len(candidates) == 0 {
+		return
+	}
+	output, err := h.Run(ctx, "docker", "compose", "version", "--short")
+	// Other versions have not been validated. Do not claim an incompatibility.
+	if err != nil || strings.TrimPrefix(strings.TrimSpace(string(output)), "v") != "5.5.1" {
+		return
+	}
+	sort.Strings(candidates)
+	for _, name := range candidates {
+		svc := m.Services[name]
+		if svc.Restart == "always" && svc.Deploy.RestartPolicy != nil && svc.Deploy.RestartPolicy.Condition == "" {
+			r.add("RESTART_POLICY_OVERRIDDEN", "warning", name,
+				"Compose 5.5.1 may discard restart: always or reject startup when deploy.restart_policy has no condition.",
+				"Review deploy.restart_policy and inspect the actual container restart policy; delay-only can become no, while max_attempts requires on-failure. Use an explicit compatible condition or remove the deploy override.")
+		}
+		for _, hook := range svc.PreStart {
+			if hook.PerReplica {
+				r.add("PRE_START_REPLICA_UNSUPPORTED", "warning", name,
+					"Compose 5.5.1 accepts pre_start.per_replica but rejects it when starting the service.",
+					"Remove per_replica only if a once-per-service hook is sufficient; otherwise use a supported per-replica initialization strategy.")
+				break
+			}
+		}
+	}
 }
 
 func localDocker(ctx context.Context, h Host) bool {
@@ -245,6 +302,7 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 		r.add("NO_ACTIVE_SERVICES", "warning", "", "Compose selected no active services.", "Enable the relevant profile or check the selected Compose files. There is nothing to start in this configuration.")
 		return r, nil
 	}
+	runtimeComposeWarnings(ctx, h, m, o, &r)
 	if !localDocker(ctx, h) {
 		r.add("CONTEXT", "warning", "", "Docker endpoint is remote or its location could not be confirmed.", "Local socket, filesystem and disk checks were skipped. Run BeforeUp on the Docker host.")
 		return r, nil

@@ -62,6 +62,8 @@ Les ports déjà publiés par le même service sont reconnus. Un autre projet Do
 
 Avec Docker rootless, la présence d'un dossier ne garantit pas l'accès depuis le conteneur. Les ports inférieurs à 1024 sont signalés prudemment, car des réglages système peuvent les autoriser. Docker Desktop Linux utilise une VM : les contrôles de sockets, dossiers et disque de l'hôte local sont alors ignorés.
 
+Deux avertissements prudents existent uniquement pour la version **Docker Compose 5.5.1** vérifiée avec Engine 29.8.1 sur Debian 13 : `RESTART_POLICY_OVERRIDDEN` (un `restart: always` peut être ignoré ou la création refusée si `deploy.restart_policy.condition` manque) et `PRE_START_REPLICA_UNSUPPORTED` (`pre_start.per_replica: true` est accepté à la validation puis refusé au démarrage). Ce sont des avertissements, pas des blocages certifiés. Les autres versions de Compose ne sont pas classées sans tests indépendants, et l'absence d'avertissement ne prouve pas leur compatibilité. Retirer `per_replica` change la sémantique d'initialisation.
+
 Le seuil disque vaut 2 Gio par défaut ; `--min-free-gib 0` désactive ce contrôle.
 
 Le code de sortie est `0` sans blocage confirmé, `1` en présence d'un blocage, ou `2` si l'analyse n'a pas pu être menée. Avec `--strict`, un avertissement suffit à renvoyer `1`, sans le transformer artificiellement en blocage dans le rapport.

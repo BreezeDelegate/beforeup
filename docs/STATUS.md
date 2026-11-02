@@ -1,5 +1,11 @@
 # Project status
 
+## 2 November 2026 — unreleased local candidate
+
+- Isolated development worktree adds `RESTART_POLICY_OVERRIDDEN` and `PRE_START_REPLICA_UNSUPPORTED` as warnings **only for Docker Compose 5.5.1**, with Docker Engine 29.8.1 separately reproduced on Debian 13.
+- Unit cases cover affected fixtures, valid controls, inactive profiles, other untested versions, deterministic order, strict-mode exit; a seven-case native Compose CLI test covers the candidate binary and output redaction.
+- This candidate is **not released or published**. Rootful AppArmor/amd64 Debian 13 is the only Engine test environment, with no SELinux, rootless, Docker Desktop or ARM64 runtime claims.
+
 ## 30 October 2026
 
 BeforeUp 0.4.3 is the first stable Linux release for the documented native Docker Engine scope. Stable means packaged and regression-tested, not that every Engine environment or deployment is certified. The baseline `check` command verifies Docker Compose configuration against selected local host conditions. The `compare` command reads active containers belonging to the same project and identifies changes in published ports, data mounts, declared container environment values and image references.

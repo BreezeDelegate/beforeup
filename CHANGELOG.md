@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased (local validation candidate)
+
+- Add version-scoped warnings for two reproduced Docker Compose 5.5.1 runtime mismatches: omitted deploy restart condition and unsupported per-replica pre-start hook.
+- Keep both findings as warnings with strict-mode opt-in; add positive/negative, profile, JSON and privacy regressions. No generalized rootless/SELinux/distro support claims.
+
 ## 0.4.3
 
 - First stable release for the documented native Linux Docker Engine scope, using the validated 0.4.3 preview feature set.

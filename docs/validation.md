@@ -10,6 +10,16 @@ Two existing projects cover other parts of the problem:
 
 BeforeUp focuses instead on a small set of facts about the **actual host**: live listeners, missing bind sources, access to Docker Engine and free space in Docker's data filesystem.
 
+## Runtime compatibility checks (2 November 2026; unreleased candidate)
+
+The candidate warns on two independently reproduced Docker Engine 29.8.1 / Compose 5.5.1 gaps on a disposable Debian 13 rootful AppArmor environment:
+
+- `restart: always` plus `deploy.restart_policy.delay` without `condition` launched with restart policy `no`, while explicit `condition: any` preserved `always`. A `max_attempts`-only variant failed creation instead (not a silent failure).
+- `pre_start.per_replica: true` passed Compose config validation but failed `compose up` with an unsupported-feature error.
+- Focused Go tests cover version scope, inactive profiles, safe controls, warning order and strict mode. Seven read-only native Compose CLI fixtures test real parsing and candidate binary output. Other Compose versions and operating systems are not certified.
+
+This candidate has not been publicly published; detailed runtime evidence remains in the private research repository.
+
 ## Reproduced comparison (29 October 2026)
 
 On a Debian Linux VPS running Docker Compose v5.5.1:
