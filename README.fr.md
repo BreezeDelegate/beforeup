@@ -51,7 +51,7 @@ go build -o beforeup .
 ./beforeup check -f compose.yaml
 ```
 
-Consulter le [guide d’installation](docs/install.md) et la [compatibilité vérifiée](docs/platform-support.md).
+Consulter le [guide d’installation](docs/install.md) et la [compatibilité vérifiée](docs/platform-support.md). Une [préversion expérimentale pour Windows avec Docker Desktop](docs/windows-preview.md) a été testée avec les conteneurs Linux. La version Linux stable reste v0.4.4.
 
 ```sh
 beforeup check

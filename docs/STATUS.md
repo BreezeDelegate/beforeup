@@ -1,5 +1,9 @@
 # Project status
 
+## 9 November 2026: Windows pre-release packaging candidate
+
+Release candidate v0.4.5-preview.1 packages the tested native Windows amd64 implementation for local Docker Desktop Linux Engine only. Stable v0.4.4 remains the Linux release. The Windows archive is unsigned and must be verified against SHA256SUMS. This record describes the candidate, not proof of publication; see the GitHub release and recorded verification before claiming release completion.
+
 ## 9 November 2026: Windows Docker Desktop experimental QA verified
 
 On native Windows amd64, Docker Desktop Linux Engine preflight and read-only comparison succeeded against isolated running containers. Proposed environment, volume, image and declared-port changes were identified, with no modification to running container state and zero leftover test containers or volumes. Linux regressions and privacy contracts passed. Windows-containers mode and Windows host-side probes remain outside the supported scope. The code is under review, not a published Windows release.

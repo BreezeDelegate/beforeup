@@ -2,6 +2,12 @@
 
 BeforeUp currently supports Linux. A portable static executable is not the same as a verified Docker Engine integration. The table below separates these outcomes.
 
+## Experimental Windows preview (9 November 2026)
+
+BeforeUp v0.4.5-preview.1 was tested as a native Windows amd64 executable with Docker Desktop 4.99.0, Linux Engine 29.9.3 and Compose 5.7.0 on WSL 2. On disposable projects, the tool recognized unchanged running services, declared environment, volume and image-reference differences, and duplicate host-port declarations. Container identity and start time stayed unchanged; test cleanup left zero containers and volumes.
+
+The Windows preview deliberately skips workstation socket, bind-source and Docker VM disk checks. Windows-container Engine mode and ARM64 Windows remain unverified. See [preview installation](windows-preview.md) and [verification details](windows-qa-handoff.md). The stable v0.4.4 release remains Linux-only.
+
 ## Linux/amd64 executable smoke tests — 29 October 2026
 
 The static BeforeUp executable was mounted read-only and run with `beforeup version` inside network-disabled, read-only OCI containers. No Docker socket was exposed to those containers.

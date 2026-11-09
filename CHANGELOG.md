@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.5-preview.1 (Windows Desktop experimental preview)
+
+- Add a native Windows amd64 preview for Docker Desktop Linux Engine with read-only Compose checks and running-state comparisons.
+- Detect published-port collisions among selected Compose services while skipping unverified Windows workstation socket, mount-path and Linux VM disk checks.
+- Keep Windows-container mode and remote-context host inspection unsupported; preserve Linux diagnostics and redact private environment and mount details.
+- Validate native Windows tests and disposable Docker Desktop projects, Linux regression tests, and a checksummed portable Windows ZIP. This is not a stable Windows release.
+
 ## 0.4.4
 
 - Warn about three verified Compose runtime configuration risks across four independently tested Compose versions (5.5.0, 5.5.1, 5.6.0 and 5.6.1): overridden restart behavior, invalid retry limits and unsupported per-replica startup hooks.

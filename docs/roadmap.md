@@ -10,12 +10,12 @@ BeforeUp stays a small, read-only Docker Compose preflight CLI. Completed work b
 - Get independent user feedback on false positives and whether each BeforeUp diagnostic offers value beyond native Docker commands.
 - Verify ARM64 package installation on real ARM64 hardware before claiming it fully supported.
 
-## Windows feasibility (research, not supported yet)
+## Windows follow-up (after experimental Docker Desktop preview)
 
-- A native Windows build is not sufficient evidence of Docker Desktop compatibility. The current Linux implementation uses syscall.Statfs, ss, sysctl and a Unix-socket assumption for local Engine checks.
-- For Docker Desktop with Linux containers, first assess read-only Compose resolution and comparison against running container metadata. Host port listeners, bind-source paths and Docker filesystem checks must be explicitly skipped as unverified when they describe the Windows workstation rather than the Engine VM.
-- Validate any future Windows preview on a real Docker Desktop installation with disposable healthy/failing cases, missing baselines, changed mounts/environment, output redaction and no daemon writes. Keep existing Linux behavior and tests unchanged.
-- WSL2 using the Linux build is a separate environment from native Windows and does not prove Docker Desktop host-check parity. Do not advertise Windows support before those tests.
+- Validate additional Windows 11 / Docker Desktop / Compose combinations independently before broadening the supported range.
+- Do not treat Docker Desktop Linux VM ports, bind paths or disk usage as equivalent to the Windows host; these checks remain deliberately skipped.
+- Windows-container Engine mode and Windows ARM64 remain unverified. Do not claim compatibility from cross-compilation alone.
+- Gather independent feedback on whether comparison diagnostics are useful before adding more platform-specific checks.
 
 ## Release discipline
 

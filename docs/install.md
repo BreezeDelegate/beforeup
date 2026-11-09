@@ -1,6 +1,6 @@
 # Installation
 
-BeforeUp is a small Linux command-line tool. There is no account, daemon, telemetry or automatic server configuration.
+BeforeUp is a small command-line tool with no account, daemon, telemetry or automatic server configuration. The stable v0.4.4 distribution targets Linux; a separate [experimental Windows Docker Desktop preview](windows-preview.md) is available for Linux-container Engines only.
 
 ## Downloaded executable
 
@@ -45,4 +45,4 @@ sh packaging/build-deb.sh arm64 dist
 
 This requires `dpkg-deb` and Go. Package building does not install anything to the host.
 
-For tested environments and important gaps, see [Linux compatibility](platform-support.md). BeforeUp does not support Windows or macOS currently. Static executable startup in an OCI image does not guarantee host Docker integration.
+For tested environments and important gaps, see [Linux compatibility](platform-support.md). The Windows preview supports only the tested Docker Desktop Linux Engine scope; macOS and Windows-container mode are unverified. Static executable startup in an OCI image does not guarantee host Docker integration.
