@@ -4,6 +4,8 @@
 
 The English and French README now lead with the read-only `compare` and `check` use cases, display the existing verified preflight GIF inline, and label its limitations. No CLI behavior, release binaries or Docker services changed.
 
+Dynamic GitHub badges now show release-asset download requests, latest stable version and license in both READMEs. The download caption explicitly excludes an interpretation as unique users or installs; no clone or visitor count is publicly claimed.
+
 ## 2 November 2026 : 0.4.4 public release verified
 
 - Version 0.4.4 includes three warning IDs: `RESTART_POLICY_OVERRIDDEN`, `RESTART_POLICY_INVALID` and `PRE_START_REPLICA_UNSUPPORTED`, limited to independently exercised Compose clients 5.5.0, 5.5.1, 5.6.0 and 5.6.1.

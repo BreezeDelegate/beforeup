@@ -4,6 +4,14 @@
 
 # BeforeUp
 
+<p align="center">
+  <a href="https://github.com/BreezeDelegate/beforeup/releases"><img alt="GitHub release file downloads" src="https://img.shields.io/github/downloads/BreezeDelegate/beforeup/total?label=release%20file%20downloads" /></a>
+  <a href="https://github.com/BreezeDelegate/beforeup/releases/latest"><img alt="Latest stable release" src="https://img.shields.io/github/v/release/BreezeDelegate/beforeup?label=stable%20release" /></a>
+  <img alt="MIT license" src="https://img.shields.io/github/license/BreezeDelegate/beforeup" />
+</p>
+
+*Release download totals count requests for individual release files, including preview builds, checksums and maintainer verification. They are not unique users or installations.*
+
 **See what your next Docker Compose deployment would change before replacing running containers.**
 
 `docker compose config` can validate a Compose file without comparing it with the stack already running. BeforeUp adds two read-only checks on a **native Linux Docker host**:

@@ -4,6 +4,14 @@
 
 # BeforeUp
 
+<p align="center">
+  <a href="https://github.com/BreezeDelegate/beforeup/releases"><img alt="GitHub release file downloads" src="https://img.shields.io/github/downloads/BreezeDelegate/beforeup/total?label=release%20file%20downloads" /></a>
+  <a href="https://github.com/BreezeDelegate/beforeup/releases/latest"><img alt="Latest stable release" src="https://img.shields.io/github/v/release/BreezeDelegate/beforeup?label=stable%20release" /></a>
+  <img alt="MIT license" src="https://img.shields.io/github/license/BreezeDelegate/beforeup" />
+</p>
+
+*Le total des téléchargements compte les fichiers de release demandés, y compris les préversions, sommes de contrôle et vérifications du mainteneur. Il ne représente ni des utilisateurs uniques ni des installations.*
+
 **Voyez ce que votre prochain déploiement Docker Compose modifierait avant de remplacer les conteneurs actifs.**
 
 `docker compose config` peut valider un fichier sans le comparer aux conteneurs déjà en fonctionnement. BeforeUp ajoute deux contrôles en lecture seule sur un **hôte Linux avec Docker Engine natif** :
