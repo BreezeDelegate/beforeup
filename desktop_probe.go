@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -31,7 +34,54 @@ func inspectWindowsDesktop(ctx context.Context, o Options, h Host, m model, r *R
 	}
 	r.add("DAEMON", "pass", "", "Docker Desktop Linux Engine is reachable.", "")
 	r.add("DESKTOP_VM", "warning", "", "Docker Desktop uses a Linux VM; Windows host port, bind path and disk checks were skipped.", "Inspect host-side conditions in the Docker VM separately. A clean comparison is not a deployment guarantee.")
+	inspectWindowsDeclaredPorts(o, h, m, r)
 	if o.Compare {
 		comparison(ctx, h, m, o.Profiles, h.Getenv("COMPOSE_PROFILES"), r)
+	}
+}
+
+func inspectWindowsDeclaredPorts(o Options, h Host, m model, r *Report) {
+	services := make([]string, 0, len(m.Services))
+	for name := range m.Services {
+		services = append(services, name)
+	}
+	sort.Strings(services)
+	type claim struct {
+		service string
+		host    string
+		port    int
+		proto   string
+	}
+	var claims []claim
+	for _, name := range services {
+		svc := m.Services[name]
+		if !profileEnabled(svc.Profiles, o.Profiles, h.Getenv("COMPOSE_PROFILES")) {
+			continue
+		}
+		for _, p := range svc.Ports {
+			if p.Published == "" {
+				continue
+			}
+			n, err := strconv.Atoi(p.Published)
+			if err != nil || n < 1 || n > 65535 {
+				r.add("PORT_RANGE", "warning", name, "Published port is not a single numeric port.", "Review host port ranges manually.")
+				continue
+			}
+			protocol := strings.ToLower(p.Protocol)
+			if protocol == "" {
+				protocol = "tcp"
+			}
+			for _, previous := range claims {
+				if previous.port != n || previous.proto != protocol || previous.service == name || !overlapping(previous.host, p.HostIP) {
+					continue
+				}
+				if uncertainPortOverlap(previous.host, p.HostIP) {
+					r.add("PORT_DUAL_STACK_UNCERTAIN", "warning", name, fmt.Sprintf("Two services publish %s port %d with potentially overlapping IPv4/IPv6 bindings.", protocol, n), "Check IPv6-only socket mode and Docker userland-proxy behavior before deploying.")
+				} else {
+					r.add("PORT_COLLISION", "blocker", name, fmt.Sprintf("Two services publish overlapping %s port %d bindings (%s and %s).", protocol, n, previous.service, name), "Change one published host port before starting the stack.")
+				}
+			}
+			claims = append(claims, claim{name, p.HostIP, n, protocol})
+		}
 	}
 }

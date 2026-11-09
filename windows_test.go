@@ -112,3 +112,23 @@ func TestWindowsContainersAreNotAdvertisedAsSupported(t *testing.T) {
 		t.Fatalf("must not compare Windows containers: %+v", r)
 	}
 }
+
+func TestWindowsDesktopDetectsDeclaredPortCollisionWithoutHostProbes(t *testing.T) {
+	const collisionModel = `{"name":"example","services":{"first":{"ports":[{"published":"48093","host_ip":"127.0.0.1","protocol":"tcp"}]},"second":{"ports":[{"published":"48093","host_ip":"127.0.0.1","protocol":"tcp"}]}}}`
+	h := windowsHost(t, "npipe:////./pipe/docker_engine", "linux", "Docker Desktop")
+	run := h.Run
+	h.Run = func(ctx context.Context, cmd string, args ...string) ([]byte, error) {
+		if strings.HasPrefix(cmd+" "+strings.Join(args, " "), "docker compose ") {
+			return []byte(collisionModel), nil
+		}
+		return run(ctx, cmd, args...)
+	}
+
+	r, err := inspectForOS(context.Background(), Options{}, h, "windows")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !hasID(r, "PORT_COLLISION") || r.Summary.Blockers != 1 {
+		t.Fatalf("declared collision must remain a blocker on Docker Desktop: %+v", r)
+	}
+}
