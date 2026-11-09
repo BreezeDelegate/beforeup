@@ -1,6 +1,10 @@
 # Project status
 
-## 2 November 2026 — 0.4.4 public release verified
+## 9 November 2026: public README onboarding update
+
+The English and French README now lead with the read-only `compare` and `check` use cases, display the existing verified preflight GIF inline, and label its limitations. No CLI behavior, release binaries or Docker services changed.
+
+## 2 November 2026 : 0.4.4 public release verified
 
 - Version 0.4.4 includes three warning IDs: `RESTART_POLICY_OVERRIDDEN`, `RESTART_POLICY_INVALID` and `PRE_START_REPLICA_UNSUPPORTED`, limited to independently exercised Compose clients 5.5.0, 5.5.1, 5.6.0 and 5.6.1.
 - On Debian 13 amd64, rootful Engine 29.8.1, 20 primary and 16 edge-case disposable startup checks reproduced runtime failures and policy downgrades; four valid controls started successfully.

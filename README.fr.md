@@ -1,16 +1,28 @@
 <p align="center">
-  <img src="assets/readme-banner.webp" alt="BeforeUp — contrôles Docker Compose avant déploiement" width="800" />
+  <img src="assets/readme-banner.webp" alt="BeforeUp : contrôles Docker Compose avant déploiement" width="800" />
 </p>
 
 # BeforeUp
 
-Contrôler un projet Docker Compose avant son démarrage ou son redéploiement : ports, montages, variables d’environnement et images locales.
+**Voyez ce que votre prochain déploiement Docker Compose modifierait avant de remplacer les conteneurs actifs.**
 
-Un fichier Compose peut être valide alors qu'un port est déjà utilisé, qu'un dossier indispensable manque ou que le compte courant n'a pas accès au moteur Docker. BeforeUp examine ces problèmes sans démarrer de conteneur. Il laisse Docker Compose interpréter la configuration.
+`docker compose config` peut valider un fichier sans le comparer aux conteneurs déjà en fonctionnement. BeforeUp ajoute deux contrôles en lecture seule sur un **hôte Linux avec Docker Engine natif** :
 
-**Linux uniquement.** La version 0.4.4 ajoute des avertissements ciblés sur la configuration Compose, sans élargir les environnements certifiés. Un diagnostic favorable ne garantit pas un déploiement réussi.
+- **`beforeup compare -f compose.yaml`** compare la configuration proposée avec les conteneurs actifs du même projet Compose. Il signale certaines modifications des ports publiés, des montages de données, des variables d’environnement déclarées et des références d’images. Il peut aussi comparer les identifiants d’images locales quand le tag reste identique.
+- **`beforeup check -f compose.yaml`** examine des conditions de l’hôte que la validation Compose ne suffit pas à établir : ports occupés, sources de montages ou dossiers de construction absents, accès au moteur Docker et espace disque disponible.
 
-**Voir BeforeUp en action :** [démonstration terminal de 18 secondes](assets/demo-preflight.mp4) ([GIF](assets/demo-preflight.gif), [aperçu PNG](assets/demo-preflight.png)). Elle reprend les résultats réels obtenus sur un projet Compose Linux isolé.
+```sh
+beforeup compare -f compose.yaml
+beforeup check -f compose.yaml
+```
+
+BeforeUp n’exécute pas `up`, `down`, `pull` ou `build` et ne modifie aucun conteneur. Un rapport sans anomalie **ne garantit pas** un déploiement réussi ni sans risque. La comparaison est partielle et nécessite l’accès aux conteneurs actifs concernés.
+
+## Démonstration : Compose valide le fichier, mais un port est occupé
+
+![Démonstration animée de 18 secondes : la configuration Docker Compose est valide, puis BeforeUp signale un port occupé et une source de montage absente](assets/demo-preflight.gif)
+
+*Reconstitution animée de résultats observés sur un projet Compose Linux isolé. Elle illustre `check`, pas `compare`. Un port occupé constitue un avertissement, pas la preuve d’un échec du déploiement.* [Voir le MP4](assets/demo-preflight.mp4) | [Aperçu statique](assets/demo-preflight.png)
 
 ## Installation
 

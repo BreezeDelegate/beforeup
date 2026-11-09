@@ -1,18 +1,28 @@
 <p align="center">
-  <img src="assets/readme-banner.webp" alt="BeforeUp — Docker Compose preflight and deployment-change checks" width="800" />
+  <img src="assets/readme-banner.webp" alt="BeforeUp: Docker Compose checks before deployment" width="800" />
 </p>
 
 # BeforeUp
 
-**Docker Compose preflight and deployment-change checks for Linux.** Find host port conflicts, missing bind mounts, changed environment settings and stale local images before changing a running stack.
+**See what your next Docker Compose deployment would change before replacing running containers.**
 
-A Compose file can be valid while its host is not ready. The published port may already be in use, a required bind-mount path may be missing, or Docker may be inaccessible to the account running the deployment.
+`docker compose config` can validate a Compose file without comparing it with the stack already running. BeforeUp adds two read-only checks on a **native Linux Docker host**:
 
-BeforeUp checks those conditions without starting containers. It also warns when a local Compose build context directory is missing. It relies on Docker Compose to parse the project rather than maintaining another Compose parser.
+- **`beforeup compare -f compose.yaml`** compares the proposed configuration with running containers from the same Compose project. It reports selected changes to published ports, data mounts, declared environment settings and image references. Where available, it also checks local image IDs for unchanged tags.
+- **`beforeup check -f compose.yaml`** examines selected host-side conditions that configuration validation does not establish, including occupied ports, missing local bind sources or build directories, Docker access and low disk headroom.
 
-**Linux only.** BeforeUp 0.4.4 adds targeted runtime-configuration warnings to the stable native Linux release. This is a read-only diagnostic, not a guarantee that deployment will succeed. Review the [limitations](#what-it-does-not-know) before using it in automation.
+```sh
+beforeup compare -f compose.yaml
+beforeup check -f compose.yaml
+```
 
-**See BeforeUp in action:** [18-second terminal demo](assets/demo-preflight.mp4) ([GIF](assets/demo-preflight.gif), [PNG preview](assets/demo-preflight.png)). The demonstration replays real results from an isolated Linux Compose fixture.
+BeforeUp never runs `up`, `down`, `pull` or `build`, and does not change your containers. A clean report **does not guarantee** a safe or successful deployment. Comparison is partial and requires access to the relevant running containers.
+
+## Demo: Compose validation passes, but a host port is busy
+
+![18-second BeforeUp terminal demonstration: Docker Compose validates the configuration, then BeforeUp reports an occupied host port and a missing bind source](assets/demo-preflight.gif)
+
+*18-second animated replay of results observed on an isolated Linux Compose fixture. This demonstrates `check`, not `compare`. An occupied port is a warning, not proof that deployment will fail.* [Watch the MP4](assets/demo-preflight.mp4) | [Static preview](assets/demo-preflight.png)
 
 ## Try it
 
