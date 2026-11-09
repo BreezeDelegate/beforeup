@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -61,7 +62,8 @@ func TestBuildContextMustBeDirectory(t *testing.T) {
 	if err := os.WriteFile(path, []byte("hello"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	raw := "{\"name\":\"build-app\",\"services\":{\"api\":{\"build\":{\"context\":\"" + path + "\"}}}}"
+	encoded, err := json.Marshal(path)
+	raw := fmt.Sprintf(`{"name":"build-app","services":{"api":{"build":{"context":%s}}}}`, encoded)
 	h := fakeHost(raw)
 	h.Stat = os.Stat
 	r, err := inspectLinux(context.Background(), Options{}, h)
