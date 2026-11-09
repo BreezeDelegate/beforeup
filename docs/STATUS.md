@@ -1,12 +1,14 @@
 # Project status
 
-## 9 November 2026: Windows pre-release packaging candidate
+## Windows preview release published: 9 November 2026
 
-Release candidate v0.4.5-preview.1 packages the tested native Windows amd64 implementation for local Docker Desktop Linux Engine only. Stable v0.4.4 remains the Linux release. The Windows archive is unsigned and must be verified against SHA256SUMS. This record describes the candidate, not proof of publication; see the GitHub release and recorded verification before claiming release completion.
+Version [v0.4.5-preview.1](https://github.com/BreezeDelegate/beforeup/releases/tag/v0.4.5-preview.1) was published as a prerelease for Windows amd64 with Docker Desktop Linux containers. The annotated tag points to commit 41cd3b6, and the merged PR #1 preserves the owner's noreply Git identity. Stable v0.4.4 remains the latest Linux release.
+
+Published assets comprise an unsigned portable ZIP and SHA256SUMS. The ZIP checksum is c478a35b402f69089db8a925dedab959010dd9434bbde0b32dd6144087f6113e. Both assets were downloaded from GitHub, verified, and compared byte-for-byte with the built originals. On the owner Windows PC, the downloaded ZIP was checked and executed: the executable printed v0.4.5-preview.1, and a Docker Desktop Linux Engine read-only comparison reported COMPOSE, DAEMON, DESKTOP_VM and NO_RUNNING_STACK. No containers or volumes remained after QA.
 
 ## 9 November 2026: Windows Docker Desktop experimental QA verified
 
-On native Windows amd64, Docker Desktop Linux Engine preflight and read-only comparison succeeded against isolated running containers. Proposed environment, volume, image and declared-port changes were identified, with no modification to running container state and zero leftover test containers or volumes. Linux regressions and privacy contracts passed. Windows-containers mode and Windows host-side probes remain outside the supported scope. The code is under review, not a published Windows release.
+On native Windows amd64, Docker Desktop Linux Engine preflight and read-only comparison succeeded against isolated running containers. Proposed environment, volume, image and declared-port changes were identified, with no modification to running container state and zero leftover test containers or volumes. Linux regressions and privacy contracts passed. Windows-containers mode and Windows host-side probes remain outside the supported scope. These checks support only the explicitly scoped Windows prerelease.
 
 ## 9 November 2026: public README onboarding update
 

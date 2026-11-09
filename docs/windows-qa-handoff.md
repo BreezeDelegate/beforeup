@@ -1,6 +1,6 @@
 # Windows Docker Desktop preview: verification handoff
 
-The Windows changes live on an experimental branch. They are not a supported release.
+The Windows implementation has been merged to main and published as v0.4.5-preview.1. It is a limited, experimental Docker Desktop Linux Engine release, not a stable or general Windows support promise.
 
 ## Contract
 
@@ -26,10 +26,6 @@ For Docker Desktop Linux Engine integration, after the owner has started the app
 - Docker Desktop was installed without a forced restart. A later desktop session started its Linux Engine, and remote QA subsequently verified the native Windows named-pipe Engine context. The owner and maintenance accounts must not be assumed to share the same Docker context.
 - Windows tests initially uncovered Linux-specific fixture assumptions; those tests now explicitly run Linux logic on both test hosts, and a Windows temporary path is JSON-encoded rather than interpolated raw. No assertions were removed.
 
-### Suggested supervised final integration
-
-In the interactive Windows desktop session, have the owner or a local operator review and accept Docker Desktop's agreement, then start the Linux Engine. Do not use the maintenance shell account as proof of owner-session access. On the development branch, verify engine reachability, make one disposable Compose fixture with a cached harmless image, and compare it before and after intentionally changing a declared environment value and mount. Confirm only the expected findings and no secret or host-path disclosure. Repeat with a remote context and Windows-container mode as negative controls without touching unrelated projects. Record results and cleanup before deciding on a release.
-
 ## Continued real-environment verification on 9 November 2026
 
 - Docker Desktop reported Linux Engine 29.9.3, with Docker Compose 5.7.0 available on native Windows amd64. The latest Windows Go suite, vet and native build passed.
@@ -38,7 +34,13 @@ In the interactive Windows desktop session, have the owner or a local operator r
 - Compose accepted two active services publishing the same TCP port. The original preview missed the collision; the fix now reports PORT_COLLISION with one blocker. With the second service in an inactive profile, no collision is reported until that profile is selected. Different transport protocols or IPv4 addresses do not trigger a collision.
 - After each disposable test, project-scoped cleanup succeeded and Windows Docker reported zero residual containers and volumes.
 - The canonical Linux VPS passed Go tests, race tests, vet, Windows amd64 cross-compilation, the 14-case read-only Compose matrix and the CI JSON, exit-code and secret-redaction contract. No production containers were changed.
-- Remaining limits: Windows-container Engine mode, Windows ARM64, other Windows/Docker Desktop versions, and parity with native Linux host-port, bind-path and VM disk checks were not established. No Windows release has been published.
+- Remaining limits: Windows-container Engine mode, Windows ARM64, other Windows/Docker Desktop versions, and parity with native Linux host-port, bind-path and VM disk checks were not established. The experimental Windows prerelease v0.4.5-preview.1 is published, unsigned and limited to Docker Desktop Linux Engine.
+
+## Public artifact verification
+
+The prerelease tag v0.4.5-preview.1 resolves to source revision 41cd3b6. A Windows amd64 ZIP and SHA256SUMS were uploaded. After publication, both were downloaded from GitHub and compared byte-for-byte with the VPS-built files. The SHA-256 digest was c478a35b402f69089db8a925dedab959010dd9434bbde0b32dd6144087f6113e.
+
+The exact public ZIP was downloaded and validated on the owner Windows PC. Its extracted executable printed version 0.4.5-preview.1 and the read-only comparison on a clean Docker Desktop Linux Engine produced COMPOSE, DAEMON, DESKTOP_VM and NO_RUNNING_STACK. No new Docker containers or volumes were left behind. The Linux stable latest release remained v0.4.4.
 
 ## Boundaries
 
