@@ -12,7 +12,7 @@ import (
 func TestBuildContextMissingIsWarnedWithoutLeakingPath(t *testing.T) {
 	secretPath := "/tmp/private-build-context-token"
 	raw := `{"name":"build-app","services":{"api":{"build":{"context":"` + secretPath + `"}}}}`
-	r, e := inspect(context.Background(), Options{}, fakeHost(raw))
+	r, e := inspectLinux(context.Background(), Options{}, fakeHost(raw))
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -30,7 +30,7 @@ func TestBuildContextMissingIsWarnedWithoutLeakingPath(t *testing.T) {
 func TestExistingBuildContextDoesNotWarn(t *testing.T) {
 	h := fakeHost(`{"name":"build-app","services":{"api":{"build":{"context":"/tmp/available"}}}}`)
 	h.Stat = func(string) (os.FileInfo, error) { return nil, nil }
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -47,7 +47,7 @@ func TestRemoteBuildContextDoesNotProbeLocalPath(t *testing.T) {
 		}
 		return old(path)
 	}
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -64,7 +64,7 @@ func TestBuildContextMustBeDirectory(t *testing.T) {
 	raw := "{\"name\":\"build-app\",\"services\":{\"api\":{\"build\":{\"context\":\"" + path + "\"}}}}"
 	h := fakeHost(raw)
 	h.Stat = os.Stat
-	r, err := inspect(context.Background(), Options{}, h)
+	r, err := inspectLinux(context.Background(), Options{}, h)
 	if err != nil {
 		t.Fatal(err)
 	}

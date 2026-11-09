@@ -20,7 +20,7 @@ func TestDockerPortOwnerLookupFailureIsNotReportedAsClear(t *testing.T) {
 		}
 		return old(ctx, cmd, args...)
 	}
-	report, err := inspect(context.Background(), Options{}, h)
+	report, err := inspectLinux(context.Background(), Options{}, h)
 	if err != nil {
 		t.Fatal(err)
 	}

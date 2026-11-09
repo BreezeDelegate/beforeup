@@ -18,7 +18,7 @@ func TestComparisonPortFindingsAreDeterministic(t *testing.T) {
 		return prev(ctx, cmd, args...)
 	}
 	for i := 0; i < 75; i++ {
-		report, err := inspect(context.Background(), Options{Compare: true}, h)
+		report, err := inspectLinux(context.Background(), Options{Compare: true}, h)
 		if err != nil {
 			t.Fatal(err)
 		}

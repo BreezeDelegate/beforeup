@@ -24,7 +24,7 @@ func replicaHost(raw string) Host {
 
 func TestScaledServiceDoesNotHideUnrelatedComparison(t *testing.T) {
 	raw := `{"name":"scale-demo","services":{"api":{"ports":[]},"worker":{"ports":[]}}}`
-	r, e := inspect(context.Background(), Options{Compare: true}, replicaHost(raw))
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, replicaHost(raw))
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -52,7 +52,7 @@ func TestOnlyScaledServiceDoesNotClaimMissingStack(t *testing.T) {
 		}
 		return old(ctx, name, args...)
 	}
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}

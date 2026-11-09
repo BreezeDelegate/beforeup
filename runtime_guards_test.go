@@ -32,7 +32,7 @@ func TestRuntimeGuardsAffectedCompose(t *testing.T) {
 		for _, version := range []string{"v5.5.0", "v5.5.1", "5.6.0", "v5.6.1\n"} {
 			t.Run(c.name+"/"+version, func(t *testing.T) {
 				raw := "{\"name\":\"case\",\"services\":{\"app\":{" + c.value + "}}}"
-				r, e := inspect(context.Background(), Options{}, runtimeGuardHost(raw, version))
+				r, e := inspectLinux(context.Background(), Options{}, runtimeGuardHost(raw, version))
 				if e != nil {
 					t.Fatal(e)
 				}
@@ -64,7 +64,7 @@ func TestRuntimeGuardsNoFalseWarnings(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			raw := "{\"name\":\"case\",\"services\":{\"app\":{" + c.value + "}}}"
-			r, e := inspect(context.Background(), Options{}, runtimeGuardHost(raw, c.version))
+			r, e := inspectLinux(context.Background(), Options{}, runtimeGuardHost(raw, c.version))
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -76,7 +76,7 @@ func TestRuntimeGuardsNoFalseWarnings(t *testing.T) {
 }
 func TestRuntimeGuardsProfileAndSorting(t *testing.T) {
 	raw := "{\"name\":\"case\",\"services\":{\"z\":{\"profiles\":[\"test\"],\"pre_start\":[{\"per_replica\":true}]},\"a\":{\"restart\":\"always\",\"deploy\":{\"restart_policy\":{\"delay\":\"5s\"}}},\"b\":{\"pre_start\":[{\"per_replica\":true}]}}}"
-	r, e := inspect(context.Background(), Options{Profiles: []string{"test"}}, runtimeGuardHost(raw, "5.5.1"))
+	r, e := inspectLinux(context.Background(), Options{Profiles: []string{"test"}}, runtimeGuardHost(raw, "5.5.1"))
 	if e != nil {
 		t.Fatal(e)
 	}

@@ -11,6 +11,11 @@ import (
 	"testing"
 )
 
+// Linux fixture tests exercise Linux diagnostics on every Go test host.
+func inspectLinux(ctx context.Context, opts Options, host Host) (Report, error) {
+	return inspectForOS(ctx, opts, host, "linux")
+}
+
 const goodModel = `{"name":"example","services":{"web":{"ports":[{"published":"8080","host_ip":"127.0.0.1","protocol":"tcp"}],"volumes":[{"type":"bind","source":"/missing/sample","bind":{"create_host_path":false}}]},"api":{"ports":[],"volumes":[]}}}`
 
 func fakeHost(config string) Host {
@@ -46,7 +51,7 @@ func find(r Report, id string) (Finding, bool) {
 	return Finding{}, false
 }
 func TestInspectDetectsRealHostProblems(t *testing.T) {
-	r, e := inspect(context.Background(), Options{MinFreeGiB: 2}, fakeHost(goodModel))
+	r, e := inspectLinux(context.Background(), Options{MinFreeGiB: 2}, fakeHost(goodModel))
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -68,7 +73,7 @@ func TestInspectDetectsRealHostProblems(t *testing.T) {
 }
 func TestShortBindIsWarningNotBlocker(t *testing.T) {
 	raw := `{"name":"x","services":{"api":{"volumes":[{"type":"bind","source":"/missing/sample","bind":{}}]}}}`
-	r, e := inspect(context.Background(), Options{}, fakeHost(raw))
+	r, e := inspectLinux(context.Background(), Options{}, fakeHost(raw))
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -90,7 +95,7 @@ func TestRemoteContextSkipsHostChecks(t *testing.T) {
 		t.Fatalf("unexpected local operation: %s", joined)
 		return nil, nil
 	}
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -107,7 +112,7 @@ func TestUnknownSocketStateDoesNotClaimFreePorts(t *testing.T) {
 		}
 		return old(ctx, name, args...)
 	}
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -118,7 +123,7 @@ func TestUnknownSocketStateDoesNotClaimFreePorts(t *testing.T) {
 func TestDiskWarningDoesNotClaimImageSize(t *testing.T) {
 	h := fakeHost(`{"name":"x","services":{"api":{}}}`)
 	h.Free = func(string) (uint64, error) { return 1024, nil }
-	r, e := inspect(context.Background(), Options{MinFreeGiB: 2}, h)
+	r, e := inspectLinux(context.Background(), Options{MinFreeGiB: 2}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -132,7 +137,7 @@ func TestComposeErrorDoesNotLeakStderr(t *testing.T) {
 	h.Run = func(context.Context, string, ...string) ([]byte, error) {
 		return nil, fmt.Errorf("SECRET_API_KEY=do-not-print")
 	}
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e == nil {
 		t.Fatal("must fail")
 	}
@@ -205,14 +210,14 @@ func TestRealComposeDoesNotMutateFixtures(t *testing.T) {
 func TestInactiveComposeProfileIsIgnored(t *testing.T) {
 	raw := `{"name":"x","services":{"debug":{"profiles":["debug"],"ports":[{"published":"8080","protocol":"tcp"}],"volumes":[{"type":"bind","source":"/missing/debug","bind":{"create_host_path":false}}]}}}`
 	h := fakeHost(raw)
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
 	if hasID(r, "BIND_MISSING") || hasID(r, "PORT_IN_USE") {
 		t.Fatalf("inactive service triggered findings: %+v", r)
 	}
-	r, e = inspect(context.Background(), Options{Profiles: []string{"debug"}}, h)
+	r, e = inspectLinux(context.Background(), Options{Profiles: []string{"debug"}}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -225,7 +230,7 @@ func TestInactiveComposeProfileIsIgnored(t *testing.T) {
 		}
 		return ""
 	}
-	r, e = inspect(context.Background(), Options{}, h)
+	r, e = inspectLinux(context.Background(), Options{}, h)
 	if e != nil || !hasID(r, "BIND_MISSING") {
 		t.Fatalf("env profile ignored: %+v / %v", r, e)
 	}
@@ -251,7 +256,7 @@ func TestDockerContextOverridesHostEnvironment(t *testing.T) {
 		}
 		return nil, fmt.Errorf("unexpected call: %s", k)
 	}
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil || !hasID(r, "CONTEXT") || hasID(r, "BIND_MISSING") {
 		t.Fatalf("wrong endpoint used: %+v / %v", r, e)
 	}
@@ -277,7 +282,7 @@ func TestPortProtocolIsolation(t *testing.T) {
 }
 func TestMalformedConfigIsNotReportedAsSuccess(t *testing.T) {
 	h := fakeHost("{}")
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e == nil || r.Summary.Blockers == 0 || hasID(r, "PORTS") {
 		t.Fatalf("invalid model: %+v / %v", r, e)
 	}
@@ -285,7 +290,7 @@ func TestMalformedConfigIsNotReportedAsSuccess(t *testing.T) {
 
 func TestTwoServicesClaimSameHostPort(t *testing.T) {
 	raw := `{"name":"x","services":{"one":{"ports":[{"host_ip":"0.0.0.0","published":"8088","protocol":"tcp"}]},"two":{"ports":[{"host_ip":"127.0.0.1","published":"8088","protocol":"tcp"}]}}}`
-	r, e := inspect(context.Background(), Options{}, fakeHost(raw))
+	r, e := inspectLinux(context.Background(), Options{}, fakeHost(raw))
 	if e != nil {
 		t.Fatal(e)
 	}

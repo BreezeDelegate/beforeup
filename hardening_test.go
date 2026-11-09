@@ -21,7 +21,7 @@ func TestDockerDesktopSkipsHostProbesButComparesContainers(t *testing.T) {
 		}
 		return old(ctx, command, args...)
 	}
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -40,7 +40,7 @@ func TestRootlessBindAccessIsNotDeclaredSafe(t *testing.T) {
 		return old(ctx, command, args...)
 	}
 	h.Stat = func(string) (os.FileInfo, error) { return nil, nil }
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -61,7 +61,7 @@ func TestRootlessLowPortPolicyIsAWarningNotBlocker(t *testing.T) {
 		}
 		return old(ctx, command, args...)
 	}
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -82,7 +82,7 @@ func TestRootlessLowPortWithRelaxedSysctl(t *testing.T) {
 		}
 		return old(ctx, command, args...)
 	}
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -92,7 +92,7 @@ func TestRootlessLowPortWithRelaxedSysctl(t *testing.T) {
 }
 func TestCrossFamilyDualStackDoesNotClaimCertainPortCollision(t *testing.T) {
 	h := fakeHost(`{"name":"dual","services":{"v4":{"ports":[{"host_ip":"0.0.0.0","published":"18129","protocol":"tcp"}]},"v6":{"ports":[{"host_ip":"::","published":"18129","protocol":"tcp"}]}}}`)
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -102,7 +102,7 @@ func TestCrossFamilyDualStackDoesNotClaimCertainPortCollision(t *testing.T) {
 }
 func TestSameFamilyOverlapRemainsBlocker(t *testing.T) {
 	h := fakeHost(`{"name":"dual","services":{"v4":{"ports":[{"host_ip":"0.0.0.0","published":"18129","protocol":"tcp"}]},"another":{"ports":[{"host_ip":"127.0.0.1","published":"18129","protocol":"tcp"}]}}}`)
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -113,7 +113,7 @@ func TestSameFamilyOverlapRemainsBlocker(t *testing.T) {
 func TestStrictCIReturnsFailureForWarningsOnly(t *testing.T) {
 	// The same valid profile-only model emits a warning but no blocker.
 	h := fakeHost(`{"name":"only-profile","services":{}}`)
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil || r.Summary.Warnings == 0 || r.Summary.Blockers != 0 {
 		t.Fatalf("fixture invalid %+v %v", r, e)
 	}
@@ -140,7 +140,7 @@ func TestRootlessPortPolicyProbeIsCached(t *testing.T) {
 		}
 		return old(ctx, command, args...)
 	}
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -163,7 +163,7 @@ func countFindings(r Report, id string) int {
 
 func TestDefaultHostIPPortCollisionIsConfirmed(t *testing.T) {
 	raw := `{"name":"dup","services":{"one":{"ports":[{"published":"18129","protocol":"tcp"}]},"two":{"ports":[{"published":"18129","protocol":"tcp"}]}}}`
-	r, e := inspect(context.Background(), Options{}, fakeHost(raw))
+	r, e := inspectLinux(context.Background(), Options{}, fakeHost(raw))
 	if e != nil {
 		t.Fatal(e)
 	}

@@ -24,7 +24,7 @@ func TestCompareReportsScaledOrphanWithoutLeakingData(t *testing.T) {
 		}
 		return old(ctx, cmd, args...)
 	}
-	report, err := inspect(context.Background(), Options{Compare: true}, h)
+	report, err := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestInspectDoesNotExposeInterpolatedMountTarget(t *testing.T) {
 		}
 		return old(ctx, cmd, args...)
 	}
-	report, err := inspect(context.Background(), Options{Compare: true}, h)
+	report, err := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ func TestCompareScaledReplicasNeedNoInspect(t *testing.T) {
 		}
 		return old(ctx, cmd, args...)
 	}
-	report, err := inspect(context.Background(), Options{Compare: true}, h)
+	report, err := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +108,7 @@ func TestCompareOrphanFindingsAreDeterministicallyOrdered(t *testing.T) {
 		return old(ctx, cmd, args...)
 	}
 	for i := 0; i < 50; i++ {
-		report, err := inspect(context.Background(), Options{Compare: true}, h)
+		report, err := inspectLinux(context.Background(), Options{Compare: true}, h)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -138,7 +138,7 @@ func TestCompareSummarizesMountChangesByService(t *testing.T) {
 		}
 		return old(ctx, cmd, args...)
 	}
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}

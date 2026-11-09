@@ -30,7 +30,7 @@ func comparisonHost(plan string) Host {
 	return h
 }
 func TestCompareReportsChangesToRunningService(t *testing.T) {
-	r, e := inspect(context.Background(), Options{Compare: true}, comparisonHost(changedModel))
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, comparisonHost(changedModel))
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -50,7 +50,7 @@ func TestCompareHasNoFabricatedBaseline(t *testing.T) {
 		}
 		return old(ctx, command, args...)
 	}
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -71,7 +71,7 @@ func TestExistingPortOwnedBySameServiceIsNotAConflict(t *testing.T) {
 		}
 		return old(ctx, command, args...)
 	}
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -98,7 +98,7 @@ func TestDockerPublishedPortVisibleWithoutSocketListener(t *testing.T) {
 		}
 		return old(ctx, command, args...)
 	}
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -117,7 +117,7 @@ func TestComparisonFailureIsExplicit(t *testing.T) {
 		}
 		return old(ctx, command, args...)
 	}
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -140,7 +140,7 @@ func TestNamedVolumeUsesResolvedComposeName(t *testing.T) {
 		}
 		return old(ctx, cmd, args...)
 	}
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -155,7 +155,7 @@ func TestNamedVolumeUsesResolvedComposeName(t *testing.T) {
 func TestResolvedBindSourceIsNotPrinted(t *testing.T) {
 	model := `{"name":"sample","services":{"api":{"volumes":[{"type":"bind","source":"/tmp/session-PRIVATE_TOKEN_DO_NOT_PRINT","target":"/mnt/data","bind":{"create_host_path":false}}]}}}`
 	h := fakeHost(model)
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -169,7 +169,7 @@ func TestResolvedBindSourceIsNotPrinted(t *testing.T) {
 
 func TestComposeWithNoActiveProfilesIsNotAnError(t *testing.T) {
 	h := fakeHost(`{"name":"profile-only","services":{}}`)
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil || r.Summary.Blockers > 0 || !hasID(r, "NO_ACTIVE_SERVICES") {
 		t.Fatalf("profile-only project should not fail validation: %+v / %v", r, e)
 	}
@@ -196,7 +196,7 @@ func TestOwnPortOnDifferentHostAddressIsAChange(t *testing.T) {
 		}
 		return old(ctx, cmd, args...)
 	}
-	r, e := inspect(context.Background(), Options{}, h)
+	r, e := inspectLinux(context.Background(), Options{}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -222,7 +222,7 @@ func TestCompareDetectsChangedEnvironmentWithoutValues(t *testing.T) {
 		}
 		return old(ctx, cmd, args...)
 	}
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -257,7 +257,7 @@ func TestCompareUnchangedEnvironmentDoesNotWarnAboutImageDefaults(t *testing.T) 
 		}
 		return old(ctx, cmd, args...)
 	}
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -282,7 +282,7 @@ func TestCompareImageReferenceChangeDoesNotEchoReference(t *testing.T) {
 		}
 		return old(ctx, cmd, args...)
 	}
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -307,7 +307,7 @@ func TestCompareMissingRuntimeMetadataIsUnknown(t *testing.T) {
 		}
 		return old(ctx, cmd, args...)
 	}
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -329,7 +329,7 @@ func TestCompareReportsAbsentServiceWithoutPredictingRemoval(t *testing.T) {
 		}
 		return old(ctx, cmd, args...)
 	}
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}

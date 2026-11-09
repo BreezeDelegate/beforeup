@@ -37,7 +37,7 @@ func hostForLocalImage(plan, runningID, localID string) Host {
 func TestSameTagDifferentLocalImageIsDetected(t *testing.T) {
 	plan := `{"name":"demo","services":{"web":{"image":"example/web:stable"}}}`
 	h := hostForLocalImage(plan, "sha256:"+strings.Repeat("1", 64), "sha256:"+strings.Repeat("2", 64))
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -51,7 +51,7 @@ func TestSameTagDifferentLocalImageIsDetected(t *testing.T) {
 func TestSameLocalImageDoesNotWarn(t *testing.T) {
 	plan := `{"name":"demo","services":{"web":{"image":"example/web:stable"}}}`
 	h := hostForLocalImage(plan, "sha256:"+strings.Repeat("1", 64), "sha256:"+strings.Repeat("1", 64))
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -62,7 +62,7 @@ func TestSameLocalImageDoesNotWarn(t *testing.T) {
 func TestUnavailableLocalImageIsNotClaimedUpdated(t *testing.T) {
 	plan := `{"name":"demo","services":{"web":{"image":"example/web:stable"}}}`
 	h := hostForLocalImage(plan, "sha256:"+strings.Repeat("1", 64), "error")
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -81,7 +81,7 @@ func TestPinnedPlatformSkipsLocalImageIdentityCheck(t *testing.T) {
 		}
 		return old(ctx, cmd, args...)
 	}
-	r, e := inspect(context.Background(), Options{Compare: true}, h)
+	r, e := inspectLinux(context.Background(), Options{Compare: true}, h)
 	if e != nil {
 		t.Fatal(e)
 	}
