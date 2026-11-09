@@ -10,10 +10,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -95,13 +95,6 @@ func run(ctx context.Context, command string, args ...string) ([]byte, error) {
 	cmd.Stderr = io.Discard
 	err := cmd.Run()
 	return output.data, err
-}
-func freeBytes(path string) (uint64, error) {
-	var s syscall.Statfs_t
-	if err := syscall.Statfs(path, &s); err != nil {
-		return 0, err
-	}
-	return s.Bavail * uint64(s.Bsize), nil
 }
 
 type service struct {
@@ -201,16 +194,20 @@ func runtimeComposeWarnings(ctx context.Context, h Host, m model, o Options, r *
 }
 
 func localDocker(ctx context.Context, h Host) bool {
-	// An explicit Docker context overrides DOCKER_HOST.
+	return localDockerEndpoint(ctx, h, "unix://")
+}
+
+func localDockerEndpoint(ctx context.Context, h Host, prefix string) bool {
+	// An explicit Docker context takes precedence over DOCKER_HOST.
 	if name := h.Getenv("DOCKER_CONTEXT"); name != "" {
 		v, err := h.Run(ctx, "docker", "context", "inspect", name, "--format", "{{.Endpoints.docker.Host}}")
-		return err == nil && strings.HasPrefix(strings.TrimSpace(string(v)), "unix://")
+		return err == nil && strings.HasPrefix(strings.ToLower(strings.TrimSpace(string(v))), prefix)
 	}
-	if v := h.Getenv("DOCKER_HOST"); v != "" {
-		return strings.HasPrefix(v, "unix://")
+	if value := h.Getenv("DOCKER_HOST"); value != "" {
+		return strings.HasPrefix(strings.ToLower(strings.TrimSpace(value)), prefix)
 	}
 	v, err := h.Run(ctx, "docker", "context", "inspect", "--format", "{{.Endpoints.docker.Host}}")
-	return err == nil && strings.HasPrefix(strings.TrimSpace(string(v)), "unix://")
+	return err == nil && strings.HasPrefix(strings.ToLower(strings.TrimSpace(string(v))), prefix)
 }
 
 type socket struct {
@@ -288,6 +285,10 @@ func occupied(port int, ip string, items []socket) bool {
 	return false
 }
 func inspect(parent context.Context, o Options, h Host) (Report, error) {
+	return inspectForOS(parent, o, h, runtime.GOOS)
+}
+
+func inspectForOS(parent context.Context, o Options, h Host, hostOS string) (Report, error) {
 	r := Report{Findings: []Finding{}}
 	ctx, cancel := context.WithTimeout(parent, 12*time.Second)
 	defer cancel()
@@ -309,6 +310,10 @@ func inspect(parent context.Context, o Options, h Host) (Report, error) {
 	r.add("COMPOSE", "pass", "", "Docker Compose configuration is valid.", "")
 	if len(m.Services) == 0 {
 		r.add("NO_ACTIVE_SERVICES", "warning", "", "Compose selected no active services.", "Enable the relevant profile or check the selected Compose files. There is nothing to start in this configuration.")
+		return r, nil
+	}
+	if hostOS == "windows" {
+		inspectWindowsDesktop(ctx, o, h, m, &r)
 		return r, nil
 	}
 	runtimeComposeWarnings(ctx, h, m, o, &r)
