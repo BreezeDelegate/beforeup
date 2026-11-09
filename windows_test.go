@@ -132,3 +132,51 @@ func TestWindowsDesktopDetectsDeclaredPortCollisionWithoutHostProbes(t *testing.
 		t.Fatalf("declared collision must remain a blocker on Docker Desktop: %+v", r)
 	}
 }
+
+func TestWindowsDeclaredPortCases(t *testing.T) {
+	tests := []struct {
+		name           string
+		secondHost     string
+		secondProtocol string
+		secondProfile  string
+		enabled        bool
+		collision      bool
+	}{
+		{"same host and protocol", "127.0.0.1", "tcp", "", false, true},
+		{"different protocol", "127.0.0.1", "udp", "", false, false},
+		{"different host IP", "127.0.0.2", "tcp", "", false, false},
+		{"inactive profile", "127.0.0.1", "tcp", "debug", false, false},
+		{"enabled profile", "127.0.0.1", "tcp", "debug", true, true},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			profile := ""
+			if tc.secondProfile != "" {
+				profile = `,"profiles":["debug"]`
+			}
+			raw := `{"name":"example","services":{"first":{"ports":[{"published":"48093","host_ip":"127.0.0.1","protocol":"tcp"}]},"second":{"ports":[{"published":"48093","host_ip":"` + tc.secondHost + `","protocol":"` + tc.secondProtocol + `"}]` + profile + `}}}`
+			h := windowsHost(t, "npipe:////./pipe/docker_engine", "linux", "Docker Desktop")
+			originalRun := h.Run
+			h.Run = func(ctx context.Context, command string, args ...string) ([]byte, error) {
+				if command == "docker" && len(args) > 0 && args[0] == "compose" {
+					return []byte(raw), nil
+				}
+				return originalRun(ctx, command, args...)
+			}
+			var options Options
+			if tc.enabled {
+				options.Profiles = []string{"debug"}
+			}
+			r, err := inspectForOS(context.Background(), options, h, "windows")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if hasID(r, "PORT_COLLISION") != tc.collision {
+				t.Fatalf("incorrect collision detection: %+v", r)
+			}
+			if hasID(r, "SOCKETS") || hasID(r, "PORTS") || hasID(r, "DISK") || hasID(r, "BIND_MISSING") {
+				t.Fatalf("unexpected Windows host probe: %+v", r)
+			}
+		})
+	}
+}

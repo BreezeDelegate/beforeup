@@ -1,5 +1,9 @@
 # Project status
 
+## 9 November 2026: Windows Docker Desktop experimental QA verified
+
+On native Windows amd64, Docker Desktop Linux Engine preflight and read-only comparison succeeded against isolated running containers. Proposed environment, volume, image and declared-port changes were identified, with no modification to running container state and zero leftover test containers or volumes. Linux regressions and privacy contracts passed. Windows-containers mode and Windows host-side probes remain outside the supported scope. The code is under review, not a published Windows release.
+
 ## 9 November 2026: public README onboarding update
 
 The English and French README now lead with the read-only `compare` and `check` use cases, display the existing verified preflight GIF inline, and label its limitations. No CLI behavior, release binaries or Docker services changed.
