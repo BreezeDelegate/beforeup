@@ -1,10 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.4.6 (Linux stable, Windows amd64 experimental)
 
 - Add read-only, warning-only checks for selected high-risk resolved Docker Compose settings: privileged mode, sensitive capabilities, disabled confinement, Docker socket bind sources and host namespaces.
 - Run these static checks for active-profile services in both `check` and `compare`, even when host probes are skipped. Preserve redaction, conservative severity and `--strict` exit behavior.
 - Add regression coverage for safe controls, profile selection, remote Docker contexts, warning order and report privacy.
+- Include a separately labeled experimental Windows amd64 ZIP in the Linux stable release assets; Windows Desktop host probes remain excluded.
+- Revalidate the native Windows executable with Docker Desktop Linux Engine, profile and secret-redaction checks, and an isolated running-container comparison. Linux amd64 Debian installation and removal were also exercised on a network-isolated Ubuntu 26.04 fixture.
 
 ## 0.4.5-preview.1 (Windows Desktop experimental preview)
 

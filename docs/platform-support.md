@@ -1,12 +1,16 @@
-# Linux compatibility and validation
+# Compatibility and validation
 
-BeforeUp currently supports Linux. A portable static executable is not the same as a verified Docker Engine integration. The table below separates these outcomes.
+BeforeUp supports native Linux host checks and a deliberately limited Windows Docker Desktop Linux Engine mode. A portable static executable is not the same as a verified Docker Engine integration. The table below separates these outcomes.
+
+## v0.4.6 scope (18 November 2026)
+
+The stable Linux amd64/arm64 binaries and Debian packages include the seven new static Compose security warnings. The same source is distributed as an explicitly labeled **experimental Windows amd64** ZIP. On Windows, Compose is resolved and selected declarations can be checked; host socket, bind-source and Docker VM disk probes are deliberately skipped. The Windows artifact is unsigned; checksum verification is required. On 18 November 2026 the candidate Windows amd64 binary was retested on the owner's actual Windows 11 Docker Desktop Linux Engine: seven high-risk warnings, profile activation, strict mode, JSON redaction, remote context and real disposable running-state comparison passed, with zero residual QA containers or volumes. Native Windows Go tests were not repeated because Go was unavailable in the remote technical account.
 
 ## Experimental Windows preview (9 November 2026)
 
 BeforeUp v0.4.5-preview.1 was tested as a native Windows amd64 executable with Docker Desktop 4.99.0, Linux Engine 29.9.3 and Compose 5.7.0 on WSL 2. On disposable projects, the tool recognized unchanged running services, declared environment, volume and image-reference differences, and duplicate host-port declarations. Container identity and start time stayed unchanged; test cleanup left zero containers and volumes.
 
-The Windows preview deliberately skips workstation socket, bind-source and Docker VM disk checks. Windows-container Engine mode and ARM64 Windows remain unverified. See [preview installation](windows-preview.md) and [verification details](windows-qa-handoff.md). The stable v0.4.4 release remains Linux-only.
+The Windows preview deliberately skips workstation socket, bind-source and Docker VM disk checks. Windows-container Engine mode and ARM64 Windows remain unverified. See [preview installation](windows-preview.md) and [verification details](windows-qa-handoff.md). The prior v0.4.5-preview.1 Windows build was a standalone prerelease; v0.4.6 consolidates an experimental Windows artifact with the Linux release.
 
 ## Linux/amd64 executable smoke tests — 29 October 2026
 
@@ -40,7 +44,7 @@ The `arm64` package was built with `GOARCH=arm64` and its Debian metadata inspec
 Reproduce the package install/remove check with an authorized local Docker Engine:
 
 ```sh
-sh tests/deb-smoke.sh path/to/beforeup_0.4.4_amd64.deb
+sh tests/deb-smoke.sh path/to/beforeup_0.4.6_amd64.deb
 ```
 
 The script creates and removes temporary, network-disabled containers. It does not mount the host Docker socket.

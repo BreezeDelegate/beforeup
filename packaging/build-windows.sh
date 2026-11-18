@@ -1,9 +1,9 @@
 #!/bin/sh
 set -eu
 
-# Package only a Windows preview, never silently replace a stable release.
+# The Windows binary remains experimental, including in stable Linux releases.
 if [ "$#" -ne 2 ]; then
-  echo "usage: build-windows-preview.sh VERSION OUTPUT_DIR" >&2
+  echo "usage: build-windows.sh VERSION OUTPUT_DIR" >&2
   exit 2
 fi
 version="$1"
@@ -15,12 +15,12 @@ if ! grep -Fxq "const version = \"$version\"" main.go; then
   exit 2
 fi
 case "$version" in
-  *-preview.*) ;;
-  *) echo "only prerelease packaging is supported by this script" >&2; exit 2 ;;
+  *-preview.*) archive="beforeup_${version}_windows_amd64.zip" ;;
+  *[!0-9.]*|'') echo "unsupported Windows package version" >&2; exit 2 ;;
+  *) archive="beforeup_${version}_windows_amd64_experimental.zip" ;;
 esac
 mkdir -p "$out"
 out=$(CDPATH= cd -- "$out" && pwd)
-archive="beforeup_$version""_windows_amd64.zip"
 scratch=$(mktemp -d)
 trap 'rm -rf -- "$scratch"' EXIT HUP INT TERM
 
@@ -36,7 +36,7 @@ destination = Path(sys.argv[2])
 with ZipFile(destination, "w") as z:
     for name in ("beforeup.exe", "README-WINDOWS.md", "LICENSE"):
         data = (directory / name).read_bytes()
-        info = ZipInfo(name, date_time=(2026, 11, 9, 0, 0, 0))
+        info = ZipInfo(name, date_time=(2026, 11, 18, 0, 0, 0))
         info.create_system = 3
         info.external_attr = 0o100644 << 16
         info.compress_type = ZIP_DEFLATED
@@ -44,4 +44,4 @@ with ZipFile(destination, "w") as z:
     assert z.testzip() is None
 PY
 (cd "$out" && sha256sum "$archive" > SHA256SUMS && sha256sum -c SHA256SUMS)
-echo "Windows preview package: $out/$archive"
+echo "Windows experimental package: $out/$archive"

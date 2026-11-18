@@ -1,10 +1,10 @@
 # Project status
 
-## 18 November 2026: static Compose security preflight (unreleased)
+## 18 November 2026: v0.4.6 release candidate, Linux stable and Windows experimental
 
 - Implemented seven warning-only categories from the resolved Compose model in both `check` and `compare`. No image pulls, container creation or host changes.
 - Independent Compose 5.7.0 fixture validation: seven warnings for the risky active service, eight with an additional profiled service, none for the ordinary service; `--strict` correctly exits 1 and normal warnings exit 0.
-- Sensitive environment values and host mount paths remained absent from JSON. Focused Go tests cover profile selection, remote contexts, normal configurations and warning severity. The historical 14-case matrix is expanded to 18 cases. `make check`, Go race tests, opt-in Compose configuration integration, 18 read-only CLI fixtures and the CI exit-code/redaction contract all passed. The Compose runtime guard matrix correctly skipped version 5.7.0 because only 5.5.0, 5.5.1, 5.6.0 and 5.6.1 are verified. No distribution artifacts have been published.
+- Sensitive environment values and host mount paths remained absent from JSON. Focused Go tests cover profile selection, remote contexts, normal configurations and warning severity. The historical 14-case matrix is expanded to 18 cases. `make check`, Go race tests, opt-in Compose configuration integration, 18 read-only CLI fixtures and the CI exit-code/redaction contract all passed. The Compose runtime guard matrix correctly skipped version 5.7.0 because only 5.5.0, 5.5.1, 5.6.0 and 5.6.1 are verified. Release candidate QA: Windows 11 Docker Desktop Linux Engine (Compose 5.7.0) passed native binary security checks, real running-state comparisons, profile/strict/redaction tests and project-scoped cleanup. Linux Go unit/race/vet/integration, 18 Compose fixtures, CI exit-code/redaction and Windows ZIP packaging-contract tests passed. The amd64 Debian package installed, ran and was removed in a network-isolated Ubuntu 26.04 container; arm64 binaries and Debian metadata were built/inspected, not ARM64-executed. The stable public release remains pending publication and downloaded-asset verification.
 
 ## Windows preview release published: 9 November 2026
 
