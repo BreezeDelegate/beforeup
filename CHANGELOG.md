@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add read-only, warning-only checks for selected high-risk resolved Docker Compose settings: privileged mode, sensitive capabilities, disabled confinement, Docker socket bind sources and host namespaces.
+- Run these static checks for active-profile services in both `check` and `compare`, even when host probes are skipped. Preserve redaction, conservative severity and `--strict` exit behavior.
+- Add regression coverage for safe controls, profile selection, remote Docker contexts, warning order and report privacy.
+
 ## 0.4.5-preview.1 (Windows Desktop experimental preview)
 
 - Add a native Windows amd64 preview for Docker Desktop Linux Engine with read-only Compose checks and running-state comparisons.

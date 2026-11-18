@@ -14,10 +14,10 @@
 
 **See what your next Docker Compose deployment would change before replacing running containers.**
 
-`docker compose config` can validate a Compose file without comparing it with the stack already running. BeforeUp adds two read-only checks on a **native Linux Docker host**:
+`docker compose config` can validate a Compose file without comparing it with the stack already running. BeforeUp provides two read-only commands. Host-side checks require a **native Linux Docker host**:
 
 - **`beforeup compare -f compose.yaml`** compares the proposed configuration with running containers from the same Compose project. It reports selected changes to published ports, data mounts, declared environment settings and image references. Where available, it also checks local image IDs for unchanged tags.
-- **`beforeup check -f compose.yaml`** examines selected host-side conditions that configuration validation does not establish, including occupied ports, missing local bind sources or build directories, Docker access and low disk headroom.
+- **`beforeup check -f compose.yaml`** examines selected host-side conditions that configuration validation does not establish, including occupied ports, missing local bind sources or build directories, Docker access and low disk headroom. Both commands also flag selected risky Compose declarations without starting containers.
 
 ```sh
 beforeup compare -f compose.yaml
@@ -87,6 +87,13 @@ A matching report means only the **inspected port bindings, data mounts, declare
 | --- | --- |
 | `COMPOSE` | The Docker configuration was resolved successfully |
 | `DAEMON` | Docker Engine is reachable by the current account |
+| `SECURITY_PRIVILEGED` | Privileged container mode requested by a selected service (warning) |
+| `SECURITY_CAPABILITIES` | `cap_add` contains high-impact Linux capabilities such as `SYS_ADMIN` or `NET_ADMIN` (warning) |
+| `SECURITY_CONFINEMENT` | Seccomp, AppArmor or SELinux labeling is explicitly disabled (warning) |
+| `SECURITY_DOCKER_SOCKET` | A bind source named `docker.sock` may grant Docker API access, even when mounted read-only (warning) |
+| `SECURITY_HOST_NETWORK` | Host network isolation is bypassed (warning) |
+| `SECURITY_HOST_PID` | Host processes are visible through a shared PID namespace (warning) |
+| `SECURITY_HOST_IPC` | Host interprocess communication is shared (warning) |
 | `RESTART_POLICY_OVERRIDDEN` | On verified Compose 5.5.0, 5.5.1, 5.6.0 and 5.6.1, an incomplete deploy policy can silently replace an explicit service restart policy (warning) |
 | `RESTART_POLICY_INVALID` | On those versions, a positive `max_attempts` without `condition: on-failure` can prevent container creation (warning) |
 | `PRE_START_REPLICA_UNSUPPORTED` | On independently tested Compose 5.5.0, 5.5.1, 5.6.0 and 5.6.1, `pre_start.per_replica: true` passes config validation but is rejected at startup (warning) |
@@ -110,6 +117,8 @@ A matching report means only the **inspected port bindings, data mounts, declare
 | `MOUNT_REMOVED` / `MOUNT_SOURCE_CHANGED` | A mounted data path or its source changes |
 | `NO_ACTIVE_SERVICES` | No services are selected by the current Compose profiles |
 
+The `SECURITY_*` warnings inspect only selected services in Docker Compose's resolved configuration. They run in both `check` and `compare`, including when remote or Docker Desktop contexts prevent host probing. They indicate declarations worth reviewing, not confirmed vulnerabilities. The Docker-socket check recognizes a bind-source filename; it does not verify that the path contains a live socket. These warnings retain their severity even with `--strict`, which changes only the exit status.
+
 Bind source paths are deliberately omitted from reports, because environment interpolation can place sensitive values in them. A missing bind source using legacy short syntax is a warning, not necessarily a failure: Docker may create a new empty directory. A port in use is also a warning. An already-running Compose stack can legitimately own its own published port.
 
 These runtime-mismatch warnings are enabled only for **Docker Compose 5.5.0, 5.5.1, 5.6.0 and 5.6.1**, independently reproduced with Docker Engine 29.8.1 on native Debian 13. Other Compose versions are not classified by these checks until tested; their absence is not proof of compatibility. These warnings do not run containers or change restart settings. For suspected restart-policy problems, compare `docker compose config` with the container's `HostConfig.RestartPolicy` via `docker inspect` on an isolated deployment. Removing `per_replica` changes hook semantics and is not a universal fix.
@@ -124,7 +133,7 @@ For CI/CD on the target Linux host, see the [preflight pipeline guide](docs/ci.m
 
 The normal output is text suitable for a terminal; `--format json` emits findings with stable IDs, severity, service and advice.
 
-You can reproduce 14 Docker Compose configuration scenarios locally after building BeforeUp:
+You can reproduce 18 Docker Compose configuration scenarios locally after building BeforeUp:
 
 ```sh
 go build -o beforeup .
@@ -142,7 +151,7 @@ This optional test needs Python 3 and authorized local Docker Engine access. It 
 
 ## What it does not know
 
-BeforeUp cannot predict whether an image will pull, whether a service will become healthy, whether an app will reach its database, or whether another process will claim a port between the check and startup. It does not scan container images for vulnerabilities.
+BeforeUp cannot predict whether an image will pull, whether a service will become healthy, whether an app will reach its database, or whether another process will claim a port between the check and startup. It does not scan container images for vulnerabilities or prove that the selected security configuration is safe.
 
 Local filesystem and socket checks are skipped for remote or Docker Desktop VM endpoints. Run on the intended **native Docker host** for those checks. Docker rootless, IPv6-only sockets and SELinux configurations still need independent end-to-end validation.
 

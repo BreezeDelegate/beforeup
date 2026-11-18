@@ -1,5 +1,11 @@
 # Project status
 
+## 18 November 2026: static Compose security preflight (unreleased)
+
+- Implemented seven warning-only categories from the resolved Compose model in both `check` and `compare`. No image pulls, container creation or host changes.
+- Independent Compose 5.7.0 fixture validation: seven warnings for the risky active service, eight with an additional profiled service, none for the ordinary service; `--strict` correctly exits 1 and normal warnings exit 0.
+- Sensitive environment values and host mount paths remained absent from JSON. Focused Go tests cover profile selection, remote contexts, normal configurations and warning severity. The historical 14-case matrix is expanded to 18 cases. `make check`, Go race tests, opt-in Compose configuration integration, 18 read-only CLI fixtures and the CI exit-code/redaction contract all passed. The Compose runtime guard matrix correctly skipped version 5.7.0 because only 5.5.0, 5.5.1, 5.6.0 and 5.6.1 are verified. No distribution artifacts have been published.
+
 ## Windows preview release published: 9 November 2026
 
 Version [v0.4.5-preview.1](https://github.com/BreezeDelegate/beforeup/releases/tag/v0.4.5-preview.1) was published as a prerelease for Windows amd64 with Docker Desktop Linux containers. The annotated tag points to commit 41cd3b6, and the merged PR #1 preserves the owner's noreply Git identity. Stable v0.4.4 remains the latest Linux release.

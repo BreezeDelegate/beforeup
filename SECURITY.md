@@ -2,6 +2,8 @@
 
 BeforeUp reads Docker Compose configuration and inspects the local host. It does not start services, clean Docker resources or rewrite project files.
 
+Both commands report a small set of static warnings for selected high-impact Compose declarations: privileged mode, sensitive added Linux capabilities, disabled seccomp/AppArmor/SELinux confinement, bind sources named `docker.sock`, and host network/PID/IPC namespaces. These warnings do not prove an exploit, and a clean result does not certify a service or image as secure. A socket warning is based on the declared bind source name, not a live-socket probe. No images are pulled or scanned, and no containers are started to test application health.
+
 Docker Compose can expand environment variables and read local files, including secrets. The compare command also reads current container port bindings, mounts, image reference and environment values through Docker inspect. These sensitive values are processed in memory only: reports contain counts of changed declared settings, not environment names or values. BeforeUp does not include interpolated Compose values, resolved host bind-source paths or raw Compose error output in its reports. Avoid running untrusted Compose projects.
 
 Docker access is security-sensitive. Membership in the `docker` group often amounts to administrator-level privileges. BeforeUp never requests `sudo` or broadens Docker permissions on your behalf.

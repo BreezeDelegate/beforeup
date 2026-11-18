@@ -113,6 +113,12 @@ type service struct {
 	} `json:"pre_start"`
 	Image       string             `json:"image"`
 	Platform    string             `json:"platform"`
+	Privileged  bool               `json:"privileged"`
+	CapAdd      []string           `json:"cap_add"`
+	SecurityOpt []string           `json:"security_opt"`
+	NetworkMode string             `json:"network_mode"`
+	PID         string             `json:"pid"`
+	IPC         string             `json:"ipc"`
 	Environment map[string]*string `json:"environment"`
 	Profiles    []string           `json:"profiles"`
 	Ports       []struct {
@@ -308,6 +314,7 @@ func inspectForOS(parent context.Context, o Options, h Host, hostOS string) (Rep
 	}
 	r.Project = m.Name
 	r.add("COMPOSE", "pass", "", "Docker Compose configuration is valid.", "")
+	securityWarnings(m, o.Profiles, h.Getenv("COMPOSE_PROFILES"), &r)
 	if len(m.Services) == 0 {
 		r.add("NO_ACTIVE_SERVICES", "warning", "", "Compose selected no active services.", "Enable the relevant profile or check the selected Compose files. There is nothing to start in this configuration.")
 		return r, nil
