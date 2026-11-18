@@ -1,5 +1,9 @@
 # Windows Docker Desktop preview: verification handoff
 
+## v0.4.6 published Windows package verification
+
+Release: https://github.com/BreezeDelegate/beforeup/releases/tag/v0.4.6. The exact public `beforeup_0.4.6_windows_amd64_experimental.zip` was downloaded and executed on the owner Windows 11 PC after publication. SHA-256: `af5f54ee71ac26715fcd1466fde5c3cc77bfb73ae5f4b10ddc17ad31296bfd2b`. Version `0.4.6` and the new `SECURITY_PRIVILEGED` warning were verified. All release assets were separately downloaded on the VPS, checked against `SHA256SUMS` and compared byte-for-byte with the final release build. Docker Desktop was stopped again after QA, matching its initial state, without rebooting Windows or modifying settings. No QA containers, volumes, scratch folders or scheduled tasks remained.
+
 ## v0.4.6 Windows retest (18 November 2026)
 
 A checksummed v0.4.6 experimental ZIP candidate was transferred to the owner Windows 11 computer over its existing private access path and its hash verified before execution. Docker Desktop's Linux Engine was started in the existing interactive session, without changing engine modes, Desktop settings or rebooting the PC. Docker Compose 5.7.0 and a Linux Engine were confirmed.
