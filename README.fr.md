@@ -14,10 +14,10 @@
 
 **Voyez ce que votre prochain déploiement Docker Compose modifierait avant de remplacer les conteneurs actifs.**
 
-`docker compose config` peut valider un fichier sans le comparer aux conteneurs déjà en fonctionnement. BeforeUp ajoute deux contrôles en lecture seule sur un **hôte Linux avec Docker Engine natif** :
+`docker compose config` peut valider un fichier sans le comparer aux conteneurs déjà en fonctionnement. BeforeUp propose deux commandes en lecture seule. Les contrôles locaux nécessitent un **hôte Linux avec Docker Engine natif** :
 
 - **`beforeup compare -f compose.yaml`** compare la configuration proposée avec les conteneurs actifs du même projet Compose. Il signale certaines modifications des ports publiés, des montages de données, des variables d’environnement déclarées et des références d’images. Il peut aussi comparer les identifiants d’images locales quand le tag reste identique.
-- **`beforeup check -f compose.yaml`** examine des conditions de l’hôte que la validation Compose ne suffit pas à établir : ports occupés, sources de montages ou dossiers de construction absents, accès au moteur Docker et espace disque disponible.
+- **`beforeup check -f compose.yaml`** examine des conditions de l’hôte que la validation Compose ne suffit pas à établir : ports occupés, sources de montages ou dossiers de construction absents, accès au moteur Docker et espace disque disponible. Les deux commandes signalent aussi certains réglages Compose présentant des risques de sécurité.
 
 ```sh
 beforeup compare -f compose.yaml
@@ -77,6 +77,9 @@ La comparaison reste partielle : elle vérifie les références d'images et les 
 - Un chemin utilisé comme volume local est-il absent ?
 - Un répertoire local utilisé comme contexte de construction (`build.context`) est-il absent ?
 - Le stockage de Docker est-il sous un seuil d'espace libre ?
+- Un service actif demande-t-il un mode privilégié, des capacités Linux sensibles, un confinement désactivé, un montage du socket Docker ou le partage des namespaces réseau, PID ou IPC de l'hôte ?
+
+Ces vérifications de sécurité sont statiques : elles examinent le modèle résolu par Docker Compose, y compris lorsque le moteur est distant ou que Docker Desktop empêche les contrôles locaux. Elles s'appliquent à `check` et `compare`, uniquement aux services sélectionnés par les profils actifs. Les diagnostics `SECURITY_PRIVILEGED`, `SECURITY_CAPABILITIES`, `SECURITY_CONFINEMENT`, `SECURITY_DOCKER_SOCKET`, `SECURITY_HOST_NETWORK`, `SECURITY_HOST_PID` et `SECURITY_HOST_IPC` restent des avertissements, même avec `--strict`. Le montage `docker.sock` est identifié à partir du nom de la source, sans certitude qu'un socket actif existe réellement.
 
 Les ports déjà publiés par le même service sont reconnus. Un autre projet Docker utilisant le port demandé est signalé séparément. Une collision potentielle entre IPv4 et IPv6 reste un avertissement : le comportement dépend du réseau hôte. Cette situation ne bloque pas forcément le démarrage : il faut d'abord vérifier à quel service appartient le port. De même, certains montages autorisent Docker à créer automatiquement un dossier absent. Ces cas sont signalés comme des avertissements.
 
@@ -90,7 +93,7 @@ Le code de sortie est `0` sans blocage confirmé, `1` en présence d'un blocage,
 
 ## Limites et confidentialité
 
-BeforeUp n'exécute pas `docker compose up`, ne crée pas de répertoires et ne supprime rien. Il ne promet pas qu'une application sera en bonne santé après démarrage. L'outil n'affiche pas les chemins sources résolus des montages, les valeurs de configuration ni les erreurs brutes de Compose, car elles peuvent contenir des données sensibles.
+BeforeUp n'exécute pas `docker compose up`, ne crée pas de répertoires et ne supprime rien. Il ne promet pas qu'une application sera en bonne santé après démarrage, qu'une image sera téléchargeable ou que sa configuration est exempte de vulnérabilités. L'outil n'affiche pas les chemins sources résolus des montages, les valeurs de configuration ni les erreurs brutes de Compose, car elles peuvent contenir des données sensibles.
 
 Pour un moteur Docker distant ou une VM Docker Desktop, les contrôles locaux non fiables sont ignorés. Les tests Docker rootless, SELinux et IPv6 restent partiels : consulte la [matrice de compatibilité](docs/platform-support.md).
 

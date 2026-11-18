@@ -25,6 +25,10 @@ cases = [
     ("same-port-different-protocol", 'services:\n  tcp:\n    image: nginx:alpine\n    ports: ["18125:80/tcp"]\n  udp:\n    image: nginx:alpine\n    ports: ["18125:53/udp"]\n', [], ["PORT_COLLISION"], None),
     ("same-port-different-ip", 'services:\n  first:\n    image: nginx:alpine\n    ports: ["127.0.0.1:18126:80"]\n  second:\n    image: nginx:alpine\n    ports: ["127.0.0.2:18126:80"]\n', [], ["PORT_COLLISION"], None),
     ("same-port-same-ip", 'services:\n  first:\n    image: nginx:alpine\n    ports: ["127.0.0.1:18127:80"]\n  second:\n    image: nginx:alpine\n    ports: ["127.0.0.1:18127:80"]\n', ["PORT_COLLISION"], [], None),
+    ("security-high-impact", "services:\n  risky:\n    image: alpine:3.22\n    privileged: true\n    cap_add: [SYS_ADMIN, NET_ADMIN]\n    security_opt: [seccomp=unconfined, apparmor=unconfined]\n    network_mode: host\n    pid: host\n    ipc: host\n    environment:\n      FAKE_TOKEN: \"BEFOREUP_SYNTHETIC_SECRET\"\n    volumes:\n      - type: bind\n        source: /tmp/BEFOREUP_SYNTHETIC_BIND_PATH/docker.sock\n        target: /var/run/docker.sock\n        read_only: true\n", ["SECURITY_PRIVILEGED", "SECURITY_CAPABILITIES", "SECURITY_CONFINEMENT", "SECURITY_DOCKER_SOCKET", "SECURITY_HOST_NETWORK", "SECURITY_HOST_PID", "SECURITY_HOST_IPC"], [], None),
+    ("security-safe-controls", "services:\n  safe:\n    image: alpine:3.22\n    cap_add: [NET_BIND_SERVICE]\n    security_opt: [no-new-privileges:true]\n", [], ["SECURITY_PRIVILEGED", "SECURITY_CAPABILITIES", "SECURITY_CONFINEMENT", "SECURITY_DOCKER_SOCKET", "SECURITY_HOST_NETWORK", "SECURITY_HOST_PID", "SECURITY_HOST_IPC"], None),
+    ("security-inactive-profile", "services:\n  dormant:\n    image: alpine:3.22\n    profiles: [review]\n    privileged: true\n", ["NO_ACTIVE_SERVICES"], ["SECURITY_PRIVILEGED"], None),
+    ("security-active-profile", "services:\n  dormant:\n    image: alpine:3.22\n    profiles: [review]\n    privileged: true\n", ["SECURITY_PRIVILEGED"], [], ["--profile", "review"]),
     ("image-not-validated", 'services:\n  web:\n    image: example.invalid/will-not-pull:no-such-tag\n', [], [], None),
     ("missing-required-variable", 'services:\n  web:\n    image: "nginx:${REQUIRED_IMAGE_TAG:?tag needed}"\n', ["COMPOSE"], [], None),
 ]
@@ -54,6 +58,13 @@ with tempfile.TemporaryDirectory(prefix="beforeup-benchmark-") as d:
         try: report=json.loads(out.stdout)
         except json.JSONDecodeError:raise RuntimeError(f"{name}: output invalid; code={out.returncode}")
         ids={f["id"] for f in report["findings"]}
+        if name == "security-high-impact":
+            security_findings=[f for f in report["findings"] if f["id"].startswith("SECURITY_")]
+            if len(security_findings) != 7 or any(f["level"] != "warning" for f in security_findings):
+                raise RuntimeError("Security configuration risks must produce seven warnings, not blockers")
+            encoded=json.dumps(report)
+            if "BEFOREUP_SYNTHETIC_SECRET" in encoded or "BEFOREUP_SYNTHETIC_BIND_PATH" in encoded:
+                raise RuntimeError("Sensitive resolved Compose configuration appeared in report")
         if not set(expected).issubset(ids):raise RuntimeError(f"{name}: missing expected {set(expected)-ids}; got {ids}")
         if set(excluded)&ids:raise RuntimeError(f"{name}: unexpected {set(excluded)&ids}")
         if name=="missing-required-variable":

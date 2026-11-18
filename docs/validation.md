@@ -10,6 +10,12 @@ Two existing projects cover other parts of the problem:
 
 BeforeUp focuses instead on a small set of facts about the **actual host**: live listeners, missing bind sources, access to Docker Engine and free space in Docker's data filesystem.
 
+## Static Compose security warnings (18 November 2026; unreleased)
+
+On the native Debian VPS with Docker Compose 5.7.0 and Go 1.26.7, a synthetic Compose file using `privileged: true`, `cap_add: [SYS_ADMIN, NET_ADMIN]`, `security_opt: [seccomp=unconfined, apparmor=unconfined]`, a read-only bind source named `docker.sock` and host network/PID/IPC namespaces passed `docker compose config`. The unmodified BeforeUp `main` reported no security findings. The patch reported seven warning categories for that service under `check` and `compare`, one additional warning for an explicitly selected profile, and zero warnings for a normal service.
+
+The scenario used a deliberately remote Docker endpoint, so BeforeUp skipped local host probes. Normal warning-only runs exited 0; `--strict` exited 1 without changing finding severity. Synthetic environment content and bind-source path markers did not appear in JSON output. No image was pulled and no container was created. Go unit tests also cover safe controls, deterministic ordering, inactive profiles, privacy and remote-engine behavior. The repository's reproducible read-only Compose matrix now includes four security cases (18 cases total). `make check`, `go test -race ./...`, the opt-in Compose config integration and CI exit-code/redaction contract all passed. Version-specific Compose runtime guards were skipped for Compose 5.7.0, not generalized from the four independently reproduced 5.5/5.6 releases. This evidence does not establish image vulnerability scanning, actual pullability, successful container startup or application health.
+
 ## Runtime compatibility checks (2 November 2026; released in 0.4.4)
 
 BeforeUp 0.4.4 reports three warning IDs for two runtime-failure families independently reproduced on Debian 13, Docker Engine 29.8.1, rootful AppArmor, with Compose 5.5.0, 5.5.1, 5.6.0 and 5.6.1:
