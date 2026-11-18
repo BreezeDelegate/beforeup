@@ -1,5 +1,18 @@
 # Windows Docker Desktop preview: verification handoff
 
+## v0.4.6 Windows retest (18 November 2026)
+
+A checksummed v0.4.6 experimental ZIP candidate was transferred to the owner Windows 11 computer over its existing private access path and its hash verified before execution. Docker Desktop's Linux Engine was started in the existing interactive session, without changing engine modes, Desktop settings or rebooting the PC. Docker Compose 5.7.0 and a Linux Engine were confirmed.
+
+Native Windows executable tests passed against the actual Docker CLI:
+- `beforeup version` printed `0.4.6`; a risky Compose file produced all seven `SECURITY_*` warnings while the normal service and inactive profile were ignored.
+- Enabling the extra profile produced eight warnings. `--strict` returned exit 1 without changing their warning classification; sensitive environment values and mount-source paths remained absent from JSON.
+- `compare` reported `NO_RUNNING_STACK` before any test containers existed; a synthetic remote endpoint produced `CONTEXT` without a local daemon probe while preserving static security findings.
+- One disposable resource-limited Alpine 3.22 container was started from a cached image with no published port or network. The unchanged model reported `RUNNING_MATCH`; proposed-only environment and image changes reported `ENV_CHANGED` and `IMAGE_REFERENCE_CHANGED`. Container ID, startup time and restart count remained unchanged.
+- Project-scoped cleanup was verified separately: zero labeled containers, zero labeled volumes, and no remaining Windows test ZIP or scratch folder.
+
+This is not general Windows compatibility certification. Windows-container Engine mode, ARM64 Windows, other Docker Desktop versions, full Windows host probes and native Go tests in the remote technical account were not verified. The real Windows executable and real Linux Engine comparison path were tested. No BeforeUp command started, stopped or altered a container; only the isolated Docker Compose QA fixture did.
+
 The Windows implementation has been merged to main and published as v0.4.5-preview.1. It is a limited, experimental Docker Desktop Linux Engine release, not a stable or general Windows support promise.
 
 ## Contract

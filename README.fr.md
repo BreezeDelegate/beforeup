@@ -34,11 +34,11 @@ BeforeUp n’exécute pas `up`, `down`, `pull` ou `build` et ne modifie aucun co
 
 ## Installation
 
-Prérequis : Linux, CLI Docker avec Compose v2 et `ss` (paquet `iproute2`). Pour Debian/Ubuntu amd64, télécharger `beforeup_0.4.4_amd64.deb` depuis la [release v0.4.4](https://github.com/BreezeDelegate/beforeup/releases/tag/v0.4.4), vérifier son SHA-256 avec `SHA256SUMS`, puis :
+Prérequis : Linux, CLI Docker avec Compose v2 et `ss` (paquet `iproute2`). Pour Debian/Ubuntu amd64, télécharger `beforeup_0.4.6_amd64.deb` depuis la [release v0.4.6](https://github.com/BreezeDelegate/beforeup/releases/tag/v0.4.6), vérifier son SHA-256 avec `SHA256SUMS`, puis :
 
 ```sh
 sha256sum -c SHA256SUMS --ignore-missing
-sudo apt install ./beforeup_0.4.4_amd64.deb
+sudo apt install ./beforeup_0.4.6_amd64.deb
 beforeup check -f compose.yaml
 ```
 
@@ -51,7 +51,7 @@ go build -o beforeup .
 ./beforeup check -f compose.yaml
 ```
 
-Consulter le [guide d’installation](docs/install.md) et la [compatibilité vérifiée](docs/platform-support.md). Une [préversion expérimentale pour Windows avec Docker Desktop](docs/windows-preview.md) a été testée avec les conteneurs Linux. La version Linux stable reste v0.4.4.
+Consulter le [guide d’installation](docs/install.md) et la [compatibilité vérifiée](docs/platform-support.md). Une [archive Windows amd64 expérimentale](docs/windows-preview.md) est incluse dans v0.4.6 pour Docker Desktop en mode conteneurs Linux. Les contrôles natifs de l’hôte Windows et les conteneurs Windows restent hors périmètre.
 
 ```sh
 beforeup check

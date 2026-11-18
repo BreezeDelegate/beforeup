@@ -36,11 +36,11 @@ BeforeUp never runs `up`, `down`, `pull` or `build`, and does not change your co
 
 Requirements: Docker CLI with Compose v2, Linux, and `ss` (from `iproute2`). Syntax validation works without Engine access; host and running-container checks require permission to access Docker. BeforeUp reports missing access instead of requesting privilege escalation.
 
-**Debian/Ubuntu (amd64):** download `beforeup_0.4.4_amd64.deb` from the [v0.4.4 release](https://github.com/BreezeDelegate/beforeup/releases/tag/v0.4.4), verify its hash against `SHA256SUMS`, then install:
+**Debian/Ubuntu (amd64):** download `beforeup_0.4.6_amd64.deb` from the [v0.4.6 release](https://github.com/BreezeDelegate/beforeup/releases/tag/v0.4.6), verify its hash against `SHA256SUMS`, then install:
 
 ```sh
 sha256sum -c SHA256SUMS --ignore-missing
-sudo apt install ./beforeup_0.4.4_amd64.deb
+sudo apt install ./beforeup_0.4.6_amd64.deb
 beforeup check -f compose.yaml
 ```
 
@@ -53,7 +53,7 @@ go build -o beforeup .
 ./beforeup check -f compose.yaml
 ```
 
-See the [full installation guide](docs/install.md) and [compatibility matrix](docs/platform-support.md). A separately verified [experimental Windows Docker Desktop preview](docs/windows-preview.md) is available for Linux containers only; the stable Linux release remains v0.4.4.
+See the [full installation guide](docs/install.md) and [compatibility matrix](docs/platform-support.md). An [experimental Windows amd64 ZIP](docs/windows-preview.md) is included in v0.4.6 for Docker Desktop with Linux containers only. Windows host checks and Windows containers are not supported.
 
 ```sh
 beforeup check
